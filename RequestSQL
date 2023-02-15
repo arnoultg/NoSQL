@@ -1,0 +1,61 @@
+
+-- Projet Relationel :
+ --Remplissage des tables :
+
+--Créer une table "User" et ajouter des utilisateurs avec des relations "suit" aléatoires :
+
+-- Créer la table "User"
+CREATE TABLE User (
+  id INT PRIMARY KEY,
+  name VARCHAR(50)
+);
+
+
+CREATE TABLE Purchases (
+  purchase_id INT PRIMARY KEY,
+  user_id INT,
+  product_id INT,
+  purchase_date DATE,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id),
+  FOREIGN KEY (product_id) REFERENCES Products(product_id)
+);
+
+CREATE TABLE Follows (
+  follow_id INT PRIMARY KEY,
+  follower_id INT,
+  followee_id INT,
+  follow_date DATE,
+  FOREIGN KEY (follower_id) REFERENCES Users(user_id),
+  FOREIGN KEY (followee_id) REFERENCES Users(user_id)
+);
+
+CREATE TABLE Product (
+  id INT PRIMARY KEY,
+  name VARCHAR(50)
+);
+
+
+-- Ajouter 1 million d'utilisateurs
+INSERT INTO User (id, name)
+SELECT n, CONCAT('User ', n)
+FROM (SELECT ROW_NUMBER() OVER () AS n FROM sys.columns) AS nums
+WHERE n <= 1000000;
+
+-- Ajouter des relations "suit" aléatoires
+INSERT INTO Follows (follower_id, followed_id)
+SELECT u1.id, u2.id
+FROM User u1, User u2
+WHERE u1.id <> u2.id AND RAND() < 0.02;
+
+
+-- Ajouter 10 000 produits
+INSERT INTO Product (id, name)
+SELECT n, CONCAT('Product ', n)
+FROM (SELECT ROW_NUMBER() OVER () AS n FROM sys.columns) AS nums
+WHERE n <= 10000;
+
+-- Ajouter des relations d'achat aléatoires
+INSERT INTO Purchases (user_id, product_id)
+SELECT u.id, p.id
+FROM User u, Product p
+WHERE RAND() < 0.2;
