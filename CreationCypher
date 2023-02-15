@@ -1,27 +1,19 @@
 // Créer les noeuds User
-CALL apoc.periodic.iterate(
-  'UNWIND range(1, 1000000) AS i RETURN i',
-  'CREATE (:User { user_id: i, username: "User " + i })',
-  { batchSize: 10000, parallel: true }
-);
+UNWIND range(1, 1000000) AS i
+CREATE (:User { user_id: i, username: "User " + i });
 
 // Créer les noeuds Product
-CALL apoc.periodic.iterate(
-  'UNWIND range(1, 10000) AS i RETURN i',
-  'CREATE (:Product { product_id: i, product_name: "Product " + i })',
-  { batchSize: 1000, parallel: true }
-);
+UNWIND range(1, 10000) AS i
+CREATE (:Product { product_id: i, product_name: "Product " + i });
 
 // Créer les relations Follows
-CALL apoc.periodic.iterate(
-  'MATCH (u1:User), (u2:User) WHERE u1 <> u2 AND rand() < 0.02 RETURN u1, u2',
-  'CREATE (u1)-[:FOLLOWS { follow_date: date() - duration({days: rand() * 7305}) }]->(u2)',
-  { batchSize: 10000, parallel: true }
-);
+MATCH (u1:User), (u2:User)
+WHERE u1 <> u2 AND rand() < 0.02
+WITH u1, u2 LIMIT 10000
+MERGE (u1)-[:FOLLOWS { follow_date: date() - duration({days: rand() * 7305}) }]->(u2);
 
 // Créer les relations Purchases
-CALL apoc.periodic.iterate(
-  'MATCH (u:User), (p:Product) WHERE rand() < 0.2 RETURN u, p',
-  'CREATE (u)-[:PURCHASED { purchase_date: date() - duration({days: rand() * 3650}) }]->(p)',
-  { batchSize: 10000, parallel: true }
-);
+MATCH (u:User), (p:Product)
+WHERE rand() < 0.2
+WITH u, p LIMIT 10000
+MERGE (u)-[:PURCHASED { purchase_date: date() - duration({days: rand() * 3650}) }]->(p);
