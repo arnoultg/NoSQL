@@ -1,19 +1,118 @@
-// Créer les noeuds User
-UNWIND range(1, 1000000) AS i
-CREATE (:User { user_id: i, username: "User " + i });
+//---------CREATE DB--------
 
-// Créer les noeuds Product
-UNWIND range(1, 10000) AS i
-CREATE (:Product { product_id: i, product_name: "Product " + i });
+CREATE DATABASE Relational;
+USE Relational;
 
-// Créer les relations Follows
-MATCH (u1:User), (u2:User)
-WHERE u1 <> u2 AND rand() < 0.02
-WITH u1, u2 LIMIT 10000
-MERGE (u1)-[:FOLLOWS { follow_date: date() - duration({days: rand() * 7305}) }]->(u2);
+CREATE TABLE Users (
+  user_id INTEGER PRIMARY KEY,
+  username STRING
+);
 
-// Créer les relations Purchases
-MATCH (u:User), (p:Product)
-WHERE rand() < 0.2
-WITH u, p LIMIT 10000
-MERGE (u)-[:PURCHASED { purchase_date: date() - duration({days: rand() * 3650}) }]->(p);
+CREATE TABLE Products (
+  product_id INTEGER PRIMARY KEY,
+  product_name STRING
+);
+
+CREATE TABLE Purchases (
+  purchase_id INTEGER PRIMARY KEY,
+  user_id INTEGER,
+  product_id INTEGER,
+  purchase_date DATE,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id),
+  FOREIGN KEY (product_id) REFERENCES Products(product_id)
+);
+
+CREATE TABLE Follows (
+  follow_id INTEGER PRIMARY KEY,
+  follower_id INTEGER,
+  followee_id INTEGER,
+  follow_date DATE,
+  FOREIGN KEY (follower_id) REFERENCES Users(user_id),
+  FOREIGN KEY (followee_id) REFERENCES Users(user_id)
+);
+
+
+//-------- INSERTION DES DONNEES -----------
+
+CALL apoc.periodic.iterate(
+  'UNWIND range(1, 1000000) AS n RETURN n',
+  'CREATE (:Users {user_id: n, username: "User " + n})',
+  {batchSize: 10000, parallel: true}
+);
+
+CALL apoc.periodic.iterate(
+  'MATCH (u:Users) WITH u LIMIT 10000 RETURN u',
+  'CALL apoc.cypher.run(
+    "MATCH (u1:Users), (u2:Users) WHERE u1.user_id <> u2.user_id AND rand() < 0.02 AND NOT (u1)-[:Follows]->(u2) WITH u1, u2 LIMIT 10000 CREATE (u1)-[:Follows {follow_date: date('2000-01-01') + duration({days: toInteger(rand() * 7305)})}]->(u2)",
+    {u1: u, u2: u},
+    {}
+  ) YIELD value RETURN 1',
+  {batchSize: 100, parallel: true}
+);
+
+CALL apoc.periodic.iterate(
+  'UNWIND range(1, 10000) AS n RETURN n',
+  'CREATE (:Products {product_id: n, product_name: "Product " + n})',
+  {batchSize: 1000, parallel: true}
+);
+
+CALL apoc.periodic.iterate(
+  'MATCH (u:Users), (p:Products) WHERE rand() < 0.002 AND NOT (u)-[:Purchases]->(p) WITH u, p LIMIT 10000 RETURN u, p',
+  'CREATE (u)-[:Purchases {purchase_date: date() + duration({days: toInteger(rand() * 3650 * -1)})}]->(p)',
+  {batchSize: 100, parallel: true}
+);
+
+
+//-------- CREATE INDEX -----------
+
+CREATE INDEX idx_followers_followee_id FOR (f:Follows) ON (f.followee_id);
+CREATE INDEX idx_purchases_user_id FOR (p:Purchases) ON (p.user_id);
+CREATE INDEX idx_purchases_product_id FOR (p:Purchases) ON (p.product_id);
+CREATE INDEX idx_products_product_name FOR (p:Products) ON (p.product_name);
+
+
+
+//------------------Requête 1 ------------
+
+// On demande à l'utilisateur de rentrer un influencer et un niveau de profondeur
+// $LEVEL
+// $Follower_ID
+
+MATCH (f:User)-[:FOLLOWS]->(u:User)-[:PURCHASED]->(p:Product)
+WHERE f.user_id = $Follower_ID
+WITH f, u, p, 1 AS level
+MATCH path = (u)-[:FOLLOWS1..$LEVEL]->(u2:User)-[:PURCHASED]->(p2:Product)
+WITH f, p2, length(path) AS num_followers, level
+RETURN f.user_id, p2.product_id, p2.product_name, COUNT() AS num_purchases
+ORDER BY f.user_id;
+
+// On peut changer le LEVEL pour avoir une profondeur selon ce que l'on souhaite
+// Le choix de l'utilisateur est le centre de notre cercle on peut changer pour spécifier un utilisateur particulier (ici un influenceur est pertinent)
+
+//------------------Requête 2 ------------
+
+// On demande à l'utilisateur de rentrer un influencer, un niveau de profondeur et un nom de produit
+// $LEVEL
+// $Follower_ID
+// $Product_Name
+
+MATCH (f:User)-[:FOLLOWS]->(u:User)-[:PURCHASED]->(p:Product)
+WHERE f.user_id = $Follower_ID
+WITH f, u, p, 1 AS level
+MATCH path = (u)-[:FOLLOWS1..$LEVEL]->(u2:User)-[:PURCHASED]->(p2:Product)
+WHERE p2.product_name = $Product_Name
+WITH f, p2, length(path) AS num_followers, level
+RETURN f.user_id, p2.product_id, p2.product_name, COUNT() AS num_purchases
+ORDER BY f.user_id;
+
+//------------------Requête 3 ------------
+
+// Remplacer $PRODUCT_ID par l'identifiant du produit recherché
+// Remplacer $LEVEL par le niveau maximal souhaité pour le cercle de followers
+
+MATCH (u:User)-[:FOLLOWS*1..$LEVEL]->(u2:User)-[:PURCHASED]->(p:Product)
+WHERE p.product_id = $PRODUCT_ID
+WITH DISTINCT u2.user_id AS followee_id
+MATCH (u3:User)-[:FOLLOWS]->(u2)
+RETURN COUNT(DISTINCT followee_id) AS num_followees;
+
