@@ -1,0 +1,13 @@
+doctype html
+html(lang=languageCode)
+	head
+		meta(charset="utf-8")
+		title #{common.title}
+		base(href=urlBasePath + "/")
+		link(rel="stylesheet", href="stylesheets/common.css")
+	body
+		div.layout
+			div.main
+				div.main--content
+					h1 #{common.error}
+					| !{common.errorExplaination}
