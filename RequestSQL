@@ -55,4 +55,87 @@ INSERT INTO Purchases (purchase_id, user_id, product_id, purchase_date)
 SELECT ROW_NUMBER() OVER () AS purchase_id,
   u.user_id, p.product_id, DATE_ADD(CURDATE(), INTERVAL -FLOOR(RAND() * 3650) DAY)
 FROM Users u, Products p
-WHERE RAND() < 0.2;
+WHERE RAND() < 0.002;
+
+
+------------------INDEX-------------------
+
+CREATE INDEX idx_followers_followee_id ON Follows (followee_id);
+CREATE INDEX idx_purchases_user_id ON Purchases (user_id);
+CREATE INDEX idx_purchases_product_id ON Purchases (product_id);
+CREATE INDEX idx_products_product_name ON Products (product_name);
+
+------------------Requete 1 ------------
+
+--On demande a l'utilisateurs de rentré un influancere et un niveau de profondeur.
+
+--$LEVEL
+--$Follower_ID
+
+
+
+WITH RECURSIVE followers(follower_id, followee_id, level) AS (
+  SELECT follower_id, followee_id, 1 FROM Follows WHERE follower_id = $Follower_ID
+  UNION
+  SELECT f.follower_id, f.followee_id, level + 1
+  FROM Follows f
+  JOIN followers ON f.follower_id = followers.followee_id
+  WHERE level < $LEVEL
+)
+SELECT f.follower_id , p.product_id, p.product_name, COUNT(*) as num_purchases
+FROM followers f 
+JOIN Purchases pur ON f.followee_id = pur.user_id
+JOIN Products p ON pur.product_id = p.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY f.follower_id;
+
+
+-- On peut changer le LEVEL pour avoir une profondeur selon ce que l'on souhaite
+-- Le choix de l'utilisateur est le centre de notre cercle on peut changer pour spécifier un utilisateur particulier ( Ici un influanceur est pertinant)
+
+
+------------------Requete 2 ------------
+
+
+--On demande a l'utilisateurs de rentré un influancere et un niveau de profondeur.
+
+--$LEVEL
+--$Follower_ID
+--$Product_Name
+
+WITH RECURSIVE followers(follower_id, followee_id, level) AS (
+SELECT follower_id, followee_id, 1 FROM Follows WHERE follower_id = $Follower_ID
+   UNION
+   SELECT f.follower_id, f.followee_id, level + 1
+   FROM Follows f
+   JOIN followers ON f.follower_id = followers.followee_id
+   WHERE level < $LEVEL
+ )
+ SELECT f.follower_id , p.product_id, p.product_name, COUNT(*) as num_purchases
+ FROM followers f
+ JOIN Purchases pur ON f.followee_id = pur.user_id
+ JOIN Products p ON pur.product_id = p.product_id
+ WHERE p.product_name= $Product_Name
+ ORDER BY f.follower_id;
+ 
+ 
+ -------------Requete 3 -----------------
+ 
+ 
+-- Remplacer $PRODUCT_ID par l'identifiant du produit recherché
+-- Remplacer $LEVEL par le niveau maximal souhaité pour le cercle de followers
+
+WITH RECURSIVE followers(follower_id, followee_id, level) AS (
+  SELECT follower_id, followee_id, 1 FROM Follows WHERE followee_id IN (
+    SELECT user_id FROM Purchases WHERE product_id = $PRODUCT_ID
+  )
+  UNION
+  SELECT f.follower_id, f.followee_id, level + 1
+  FROM Follows f
+  JOIN followers ON f.follower_id = followers.followee_id
+  WHERE level < $LEVEL
+)
+SELECT COUNT(DISTINCT f.followee_id) as num_followees
+FROM followers f
+JOIN Purchases pur ON f.followee_id = pur.user_id
+WHERE pur.product_id = $PRODUCT_ID;
