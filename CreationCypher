@@ -1,4 +1,4 @@
----------CREATE DB--------
+//---------CREATE DB--------
 
 CREATE DATABASE Relational;
 USE Relational;
@@ -32,7 +32,7 @@ CREATE TABLE Follows (
 );
 
 
--------- INSERTION DES DONNEES -----------
+//-------- INSERTION DES DONNEES -----------
 
 CALL apoc.periodic.iterate(
   'UNWIND range(1, 1000000) AS n RETURN n',
@@ -63,7 +63,7 @@ CALL apoc.periodic.iterate(
 );
 
 
--------- CREATE INDEX -----------
+//-------- CREATE INDEX -----------
 
 CREATE INDEX idx_followers_followee_id FOR (f:Follows) ON (f.followee_id);
 CREATE INDEX idx_purchases_user_id FOR (p:Purchases) ON (p.user_id);
@@ -72,7 +72,7 @@ CREATE INDEX idx_products_product_name FOR (p:Products) ON (p.product_name);
 
 
 
-------------------Requête 1 ------------
+//------------------Requête 1 ------------
 
 // On demande à l'utilisateur de rentrer un influencer et un niveau de profondeur
 // $LEVEL
@@ -89,7 +89,7 @@ ORDER BY f.user_id;
 // On peut changer le LEVEL pour avoir une profondeur selon ce que l'on souhaite
 // Le choix de l'utilisateur est le centre de notre cercle on peut changer pour spécifier un utilisateur particulier (ici un influenceur est pertinent)
 
-------------------Requête 2 ------------
+//------------------Requête 2 ------------
 
 // On demande à l'utilisateur de rentrer un influencer, un niveau de profondeur et un nom de produit
 // $LEVEL
@@ -105,7 +105,7 @@ WITH f, p2, length(path) AS num_followers, level
 RETURN f.user_id, p2.product_id, p2.product_name, COUNT() AS num_purchases
 ORDER BY f.user_id;
 
-------------------Requête 3 ------------
+//------------------Requête 3 ------------
 
 // Remplacer $PRODUCT_ID par l'identifiant du produit recherché
 // Remplacer $LEVEL par le niveau maximal souhaité pour le cercle de followers
