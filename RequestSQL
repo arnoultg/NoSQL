@@ -67,7 +67,7 @@ CREATE INDEX idx_products_product_name ON Products (product_name);
 
 ------------------Requete 1 ------------
 
---On demande a l'utilisateurs de rentré un influancere et un niveau de profondeur.
+--On demande a l'utilisateurs de rentré un user et un niveau de profondeur.
 
 --$LEVEL
 --$Follower_ID

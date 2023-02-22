@@ -4,28 +4,29 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" type="text/css" href="style.css">
     <title>Projet No SQL </title>    
-    <script src="https://unpkg.com/neo4j-driver/lib/browser/neo4j-web.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
   </head>
   <body>
     <h1>Project No SQL !</h1> 
-    <div>
+    <div id="flex">
         <p>Veuillez sélectionner une base de données :</p>
         <select id="selecteur">
             <option value="Neo4j">Neo4j</option>
             <option value="MariaDB">MariaDB</option>
         </select>
     </div>
-
-    <div>
+    <div id="flex">
         <br><br>
         <button id="btnAjouter">Ajouter</button>
         <button id="btnUtilisateurs">Utilisateurs</button>
         <button id="btnProduits">Produits</button>
     </div>
 
-    <div id="tableau"></div>
+    <div id="tableau">
+      <div id="tableau_user"></div>
+      <div id="tableau_result"></div>
+    </div>
 
     <script src="../script_home.js"></script>
   </body>

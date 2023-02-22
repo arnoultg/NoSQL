@@ -4,7 +4,13 @@ body {
     padding: 0;
   }
   
-  div {
+  #flex {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+  }
+
+  #tableau {
     display: flex;
     justify-content: center;
     margin: 20px;
@@ -59,5 +65,26 @@ body {
     font-weight: bold;
     margin: 20px 0;
   }
+
+
+label {
+  display: inline-block;
+  margin-right: 10px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 60px;
+}
+
+.profondeur{
+    margin-bottom: 20px;
+    text-align: center;
+}
   
     
