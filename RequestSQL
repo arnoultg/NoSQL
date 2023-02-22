@@ -125,17 +125,18 @@ SELECT follower_id, followee_id, 1 FROM Follows WHERE follower_id = $Follower_ID
 -- Remplacer $PRODUCT_ID par l'identifiant du produit recherché
 -- Remplacer $LEVEL par le niveau maximal souhaité pour le cercle de followers
 
-WITH RECURSIVE followers(follower_id, followee_id, level) AS (
-  SELECT follower_id, followee_id, 1 FROM Follows WHERE followee_id IN (
-    SELECT user_id FROM Purchases WHERE product_id = $PRODUCT_ID
-  )
-  UNION
-  SELECT f.follower_id, f.followee_id, level + 1
-  FROM Follows f
-  JOIN followers ON f.follower_id = followers.followee_id
-  WHERE level < $LEVEL
-)
-SELECT COUNT(DISTINCT f.followee_id) as num_followees
-FROM followers f
-JOIN Purchases pur ON f.followee_id = pur.user_id
-WHERE pur.product_id = $PRODUCT_ID;
+SELECT COUNT(DISTINCT f.followee_id) AS num_followees
+FROM Users u
+INNER JOIN (
+    WITH RECURSIVE followers(follower_id, followee_id, level) AS (
+        SELECT follower_id, followee_id, 1 FROM Follows WHERE followee_id IN (
+            SELECT user_id FROM Purchases WHERE product_id = $PRODUCT_ID
+        )
+        UNION
+        SELECT f.follower_id, f.followee_id, level + 1
+        FROM Follows f
+        JOIN followers ON f.follower_id = followers.followee_id
+        WHERE level < $LEVEL
+    )
+    SELECT followee_id FROM followers
+) AS f ON u.user_id = f.followee_id;
