@@ -1,118 +1,53 @@
-//---------CREATE DB--------
+// Créer 1 million d'utilisateurs
+UNWIND range(1, 1000000) AS user_id
+CREATE (:User {user_id: user_id});
 
-CREATE DATABASE Relational;
-USE Relational;
+// Créer 10 000 produits
+UNWIND range(1, 10000) AS product_id
+CREATE (:Product {product_id: product_id});
 
-CREATE TABLE Users (
-  user_id INTEGER PRIMARY KEY,
-  username STRING
-);
+// Ajouter des relations "suit" aléatoires
+MATCH (u1:User), (u2:User)
+WHERE u1 <> u2 AND rand() < 0.02
+CREATE (u1)-[:FOLLOWS]->(u2)
 
-CREATE TABLE Products (
-  product_id INTEGER PRIMARY KEY,
-  product_name STRING
-);
+//Créer des produits avec des relations d'achat aléatoires :
 
-CREATE TABLE Purchases (
-  purchase_id INTEGER PRIMARY KEY,
-  user_id INTEGER,
-  product_id INTEGER,
-  purchase_date DATE,
-  FOREIGN KEY (user_id) REFERENCES Users(user_id),
-  FOREIGN KEY (product_id) REFERENCES Products(product_id)
-);
+// Ajouter des relations d'achat aléatoires
+MATCH (u:User), (p:Product)
+WHERE rand() < 0.02
+CREATE (u)-[:PURCHASED]->(p)
 
-CREATE TABLE Follows (
-  follow_id INTEGER PRIMARY KEY,
-  follower_id INTEGER,
-  followee_id INTEGER,
-  follow_date DATE,
-  FOREIGN KEY (follower_id) REFERENCES Users(user_id),
-  FOREIGN KEY (followee_id) REFERENCES Users(user_id)
-);
+//Requêtes dans la base :
 
+//----------------REQUETE 1 -----------------
 
-//-------- INSERTION DES DONNEES -----------
+//Obtenir la liste et le nombre des produits commandés par les cercles de followers d'un individu (niveau 1, …, niveau n)
 
-CALL apoc.periodic.iterate(
-  'UNWIND range(1, 1000000) AS n RETURN n',
-  'CREATE (:Users {user_id: n, username: "User " + n})',
-  {batchSize: 10000, parallel: true}
-);
+//$USER_ID : user id d'un individu
+//$LEVEL : profondeur souhaitée
 
-CALL apoc.periodic.iterate(
-  'MATCH (u:Users) WITH u LIMIT 10000 RETURN u',
-  'CALL apoc.cypher.run(
-    "MATCH (u1:Users), (u2:Users) WHERE u1.user_id <> u2.user_id AND rand() < 0.02 AND NOT (u1)-[:Follows]->(u2) WITH u1, u2 LIMIT 10000 CREATE (u1)-[:Follows {follow_date: date('2000-01-01') + duration({days: toInteger(rand() * 7305)})}]->(u2)",
-    {u1: u, u2: u},
-    {}
-  ) YIELD value RETURN 1',
-  {batchSize: 100, parallel: true}
-);
+MATCH (u:User {user_id:$USER_ID})-[:FOLLOWS0..$LEVEL]->(f:User)-[:PURCHASED]->(p:Product)
+RETURN p.product_name, COUNT(DISTINCT f) AS nombre_de_followers, COUNT() AS nombre_de_commandes
+ORDER BY nombre_de_followers DESC
 
-CALL apoc.periodic.iterate(
-  'UNWIND range(1, 10000) AS n RETURN n',
-  'CREATE (:Products {product_id: n, product_name: "Product " + n})',
-  {batchSize: 1000, parallel: true}
-);
+//----------------REQUETE 2 -----------------
 
-CALL apoc.periodic.iterate(
-  'MATCH (u:Users), (p:Products) WHERE rand() < 0.002 AND NOT (u)-[:Purchases]->(p) WITH u, p LIMIT 10000 RETURN u, p',
-  'CREATE (u)-[:Purchases {purchase_date: date() + duration({days: toInteger(rand() * 3650 * -1)})}]->(p)',
-  {batchSize: 100, parallel: true}
-);
+//Même requête mais avec spécification d'un produit particulier
 
+//$USER_ID : user id d'un individu
+//$LEVEL : profondeur souhaitée
+//$PRODUCT : produit ciblé
 
-//-------- CREATE INDEX -----------
+MATCH (u:User {user_id:$USER_ID})-[:FOLLOWS0..$LEVEL]->(f:User)-[:PURCHASED]->(p:Product {product_name: $PRODUCT})
+RETURN COUNT(DISTINCT f) AS nombre_de_followers, COUNT() AS nombre_de_commandes
 
-CREATE INDEX idx_followers_followee_id FOR (f:Follows) ON (f.followee_id);
-CREATE INDEX idx_purchases_user_id FOR (p:Purchases) ON (p.user_id);
-CREATE INDEX idx_purchases_product_id FOR (p:Purchases) ON (p.product_id);
-CREATE INDEX idx_products_product_name FOR (p:Products) ON (p.product_name);
+//----------------REQUETE 3 -----------------
+//Pour une référence de produit donné, obtenir le nombre de personnes l'ayant commandé dans un cercle de followers "orienté" de niveau n (à effectuer sur plusieurs niveaux : 0, 1, 2 …)
 
+//$PRODUCT : produit ciblé
+//$LEVEL : profondeur souhaitée
 
-
-//------------------Requête 1 ------------
-
-// On demande à l'utilisateur de rentrer un influencer et un niveau de profondeur
-// $LEVEL
-// $Follower_ID
-
-MATCH (f:User)-[:FOLLOWS]->(u:User)-[:PURCHASED]->(p:Product)
-WHERE f.user_id = $Follower_ID
-WITH f, u, p, 1 AS level
-MATCH path = (u)-[:FOLLOWS1..$LEVEL]->(u2:User)-[:PURCHASED]->(p2:Product)
-WITH f, p2, length(path) AS num_followers, level
-RETURN f.user_id, p2.product_id, p2.product_name, COUNT() AS num_purchases
-ORDER BY f.user_id;
-
-// On peut changer le LEVEL pour avoir une profondeur selon ce que l'on souhaite
-// Le choix de l'utilisateur est le centre de notre cercle on peut changer pour spécifier un utilisateur particulier (ici un influenceur est pertinent)
-
-//------------------Requête 2 ------------
-
-// On demande à l'utilisateur de rentrer un influencer, un niveau de profondeur et un nom de produit
-// $LEVEL
-// $Follower_ID
-// $Product_Name
-
-MATCH (f:User)-[:FOLLOWS]->(u:User)-[:PURCHASED]->(p:Product)
-WHERE f.user_id = $Follower_ID
-WITH f, u, p, 1 AS level
-MATCH path = (u)-[:FOLLOWS1..$LEVEL]->(u2:User)-[:PURCHASED]->(p2:Product)
-WHERE p2.product_name = $Product_Name
-WITH f, p2, length(path) AS num_followers, level
-RETURN f.user_id, p2.product_id, p2.product_name, COUNT() AS num_purchases
-ORDER BY f.user_id;
-
-//------------------Requête 3 ------------
-
-// Remplacer $PRODUCT_ID par l'identifiant du produit recherché
-// Remplacer $LEVEL par le niveau maximal souhaité pour le cercle de followers
-
-MATCH (u:User)-[:FOLLOWS*1..$LEVEL]->(u2:User)-[:PURCHASED]->(p:Product)
-WHERE p.product_id = $PRODUCT_ID
-WITH DISTINCT u2.user_id AS followee_id
-MATCH (u3:User)-[:FOLLOWS]->(u2)
-RETURN COUNT(DISTINCT followee_id) AS num_followees;
-
+MATCH (p:Product {product_name:$PRODUCT})<-[:PURCHASED]-(u:User)-[:FOLLOWS*0..$LEVEL]->(f:User)
+RETURN COUNT(DISTINCT u) AS nombre_de_personnes, COUNT(DISTINCT f) AS nombre_de_followers, $LEVEL AS niveau
+ORDER BY niveau ASC
