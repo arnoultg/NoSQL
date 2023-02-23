@@ -33,11 +33,14 @@ Pour lancer l'application :
 `npm start`
 
 
+##IMPORTANT
+Nous nous sommes contenté du miminum en expérience utilisateur et nous vous recommandons d'ouvrir la console JS de votre navigateur afin d'avoir les messages de validations de vos actions ( ajout d'éléments dans les bases, requete de données, etc...)
+
 ### Conclusion :
 
-Les deux bases de données que nous avons créées sont différentes et ont chacune leurs avantages et leurs inconvénients en fonction des cas d'utilisation:
+Les deux bases de données que nous avons créées sont différentes ont chacune leurs avantages et leurs inconvénients en fonction des cas d'utilisation:
 
-La base de données NoSQL que nous avons créée est orientée graphe et est donc très utile pour les cas d'utilisation basés sur des graphes, tels que les réseaux sociaux. Elle est très performante pour les requêtes basées sur les relations, avec comme exemples requêtes de la première et de la deuxième requête que nous avons écrites. Cependant, elle peut être moins performante pour les requêtes qui nécessitent des jointures complexes sur plusieurs tables.
+La base de données NoSQL que nous avons créée est orientée graphe et est donc très utile pour les cas d'utilisation basés sur des graphes, tels que les réseaux sociaux. Elle est très performante pour les requêtes basées sur les relations, avec comme exemples la première requêtes et de la deuxième requête que nous avons écrites. Cependant, elle peut être moins performante pour les requêtes qui nécessitent des jointures complexes sur plusieurs tables.
 
 L' autre solution se base de données relationnelle que nous avons créée, elle est optimisée pour les requêtes basées sur des tables. Elle est plus efficace pour les jointures sur plusieurs tables, comme la requête de niveau 3 que nous avons écrite, elle implique trois tables différentes. Cependant, elle peut être moins efficace pour les requêtes qui nécessitent de suivre des relations entre les données, comme les requêtes de niveau 1 et 2 que nous avons faites.
 
