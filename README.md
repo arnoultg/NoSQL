@@ -33,6 +33,9 @@ Pour lancer l'application :
 `npm start`
 
 
+##IMPORTANT
+Nous nous sommes contenté du miminum en expérience utilisateur et nous vous recommandons d'ouvrir la console JS de votre navigateur afin d'avoir les messages de validations de vos actions ( ajout d'éléments dans les bases, requete de données, etc...)
+
 ### Conclusion :
 
 Les deux bases de données que nous avons créées sont différentes ont chacune leurs avantages et leurs inconvénients en fonction des cas d'utilisation:
