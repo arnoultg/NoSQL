@@ -3,19 +3,19 @@ UNWIND range(1, 10000000) AS user_id
 CREATE (:User {user_id: user_id});
 
 // Créer 100 000 produits
-UNWIND range(1, 100000) AS product_id
+UNWIND range(1, 100) AS product_id
 CREATE (:Product {product_id: product_id});
 
 // Ajouter des relations "suit" aléatoires
 MATCH (u1:User), (u2:User)
-WHERE u1 <> u2 AND rand() < 0.02
+WHERE u1 <> u2 AND rand() < 0.5
 CREATE (u1)-[:FOLLOWS]->(u2)
 
 //Créer des produits avec des relations d'achat aléatoires :
 
 // Ajouter des relations d'achat aléatoires
 MATCH (u:User), (p:Product)
-WHERE rand() < 0.02
+WHERE rand() < 0.5
 CREATE (u)-[:PURCHASED]->(p)
 
 //Requêtes dans la base :
@@ -27,7 +27,7 @@ CREATE (u)-[:PURCHASED]->(p)
 //$USER : user id d'un individue
 //$LEVEL : profondeur souhaité
 
-MATCH (u:User {user_id:$USER_ID})-[:FOLLOWS*0..$LEVEL]->(f:User)-[:PURCHASED]->(p:Product)
+MATCH (u:User {user_id:1})-[:FOLLOWS*0..1]->(f:User)-[:PURCHASED]->(p:Product)
 RETURN p.product_name, COUNT(DISTINCT f) AS nombre_de_followers, COUNT(*) AS nombre_de_commandes
 ORDER BY nombre_de_followers DESC
 

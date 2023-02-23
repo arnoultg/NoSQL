@@ -1,8 +1,86 @@
 var selecteur = document.getElementById("selecteur");
+var productsCount;
+var purchaseCount;
+var followsCount;
+var userCount;
+
+function formatTime(ms) {
+    var time = parseFloat(ms) / 1000;
+    var hours = Math.floor(time / 3600);
+    var minutes = Math.floor((time % 3600) / 60);
+    var seconds = Math.floor(time % 60);
+    var milliseconds = Math.floor(ms % 1000);
+    
+    var result = '';
+    if (hours > 0) {
+      result += hours + 'h ';
+    }
+    if (minutes > 0) {
+      result += minutes + 'min ';
+    }
+    if (seconds > 0) {
+      result += seconds + 's ';
+    }
+    if (milliseconds > 0) {
+      result += milliseconds + 'ms';
+    }
+    
+    return result.trim();
+  }
+
+function countRows(callback) {
+    if (selecteur.value === "MariaDB") {
+        $.ajax({
+        url: 'http://localhost:8080/requeteSQL',
+        type: 'POST',
+        data: {sql: "SELECT TABLE_NAME, TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'Relational';"},
+        success: function(result) {
+            var tables = JSON.parse(result);
+            productsCount=tables[0].TABLE_ROWS
+            purchaseCount = tables[1].TABLE_ROWS
+            followsCount = tables[2].TABLE_ROWS
+            userCount = tables[3].TABLE_ROWS
+            callback(userCount,productsCount, followsCount, purchaseCount)
+            
+        },
+        error: function(err) {
+            console.log(err);
+        } 
+        });
+    }else if (selecteur.value === "Neo4j") {
+        $.ajax({
+            url: 'http://localhost:8080/requeteNeo4j',
+            type: 'POST',
+            data: { cypherQuery: `MATCH (n)
+            WHERE (n:Product OR n:User)
+            RETURN labels(n) as labels, count(n) as Count 
+            UNION ALL
+            MATCH ()-[r]->()
+            WHERE type(r) IN ['FOLLOWS', 'PURCHASED']
+            RETURN type(r) as labels, count(r) as Count` },
+            success: function(result) {           
+                console.log(result)
+                userCount = result[0].Count.low;
+                productsCount = result[1].Count.low;
+                followsCount = result[2].Count.low;
+                purchaseCount = result[3].Count.low;
+               callback(userCount,productsCount, followsCount, purchaseCount);
+            },
+            error: function(err) {
+              console.log(err);
+            }
+          });
+    }
+
+    console.log("testtt", productsCount)
+    return productsCount,purchaseCount,followsCount,userCount
+  }
+  
 
 function requete1(id){
     let level = document.getElementById("nb-prof" + id).value;
     console.log(level)
+    var startTime = new Date().getTime();
     if (selecteur.value === "MariaDB") {
         $.ajax({
             type: "POST",
@@ -25,6 +103,13 @@ function requete1(id){
                 // Traitez la réponse du serveur ici
                 var results = JSON.parse(response);
                 console.log(results)
+                var endTime = new Date().getTime();
+                var executionTime = endTime - startTime;
+                countRows(function(userCount,productsCount,followsCount, purchaseCount ) {
+                    var row_time = "<tr><td> SQL </td><td> Requete 1 </td><td>"+ formatTime(executionTime) +"</td><td>"+ userCount +"</td><td>"+ productsCount +"</td><td>"+ followsCount +"</td><td>"+ purchaseCount +"</td>";
+                    $('#table_temps').append(row_time);
+                  });
+                
                 var table_result = "<table id=\"table_result\"><thead><tr><th>Follower ID</th><th>ID</th><th>Produits</th><th>Nombre d'achat</th></tr></thead><tbody>";
                 for (var i = 0; i < results.length; i++) {
                     var row = "<tr><td>" + results[i].follower_id + "</td><td>" + results[i].product_id + "</td><td >" + results[i].product_name + "</td><td>" + results[i].num_purchases  + "</td></tr>";
@@ -43,14 +128,19 @@ function requete1(id){
         $.ajax({
             type: "POST",
             url: "http://localhost:8080/requeteNeo4j",
-            data: { cypherQuery: `
-                MATCH (u:User {user_id:`+ id +`})-[:FOLLOWS*0..`+ level +`]->(f:User)-[:PURCHASED]->(p:Product)
-                RETURN p.product_id AS product_id ,p.product_name AS product_name, COUNT(DISTINCT f) AS nombre_de_followers, COUNT(*) AS nombre_de_commandes
-                ORDER BY nombre_de_commandes DESC
+            data: { cypherQuery: `MATCH (u:User {user_id:`+id+`})-[:FOLLOWS*0..`+level+`]->(f:User)-[:PURCHASED]->(p:Product)
+            RETURN p.product_id as product_id,p.product_name as product_name, COUNT(DISTINCT f) AS nombre_de_followers, COUNT(*) AS nombre_de_commandes
+            ORDER BY nombre_de_followers DESC
             ` },
             success: function(results) {
                 // Traitez la réponse du serveur ici
-                console.log(results[1])
+                console.log(results)
+                var endTime = new Date().getTime();
+                var executionTime = endTime - startTime;
+                countRows(function(userCount,productsCount,followsCount, purchaseCount ) {
+                    var row_time = "<tr><td> Neo4j </td><td> Requete 1 </td><td>"+ formatTime(executionTime) +"</td><td>"+ userCount +"</td><td>"+ productsCount +"</td><td>"+ followsCount +"</td><td>"+ purchaseCount +"</td>";
+                    $('#table_temps').append(row_time);
+                  });
                 var table_result = "<table id=\"table_result\"><thead><tr><th>Follower ID</th><th>ID</th><th>Produits</th><th>Nombre d'achat</th></tr></thead><tbody>";
                 for (var i = 0; i < results.length; i++) {
                     var row = "<tr><td>" + id + "</td><td>" + results[i].product_id.low + "</td><td >" + results[i].product_name + "</td><td>" + results[i].nombre_de_commandes.low  + "</td></tr>";
@@ -74,6 +164,8 @@ function requete2(id){
     
     let level = document.getElementById("nb-prof" + id).value;
     let id_product = document.getElementById("nb-product" + id).value;
+    var startTime = new Date().getTime();
+
     
 
     if (selecteur.value === "MariaDB") {
@@ -98,6 +190,12 @@ function requete2(id){
                 // Traitez la réponse du serveur ici
                 var results = JSON.parse(response);
                 console.log(results)
+                var endTime = new Date().getTime();
+                var executionTime = endTime - startTime;
+                countRows(function(userCount,productsCount,followsCount, purchaseCount ) {
+                    var row_time = "<tr><td> SQL </td><td> Requete 2 </td><td>"+ formatTime(executionTime) +"</td><td>"+ userCount +"</td><td>"+ productsCount +"</td><td>"+ followsCount +"</td><td>"+ purchaseCount +"</td>";
+                    $('#table_temps').append(row_time);
+                  });
                 var table_result = "<table id=\"table_result\"><thead><tr><th>Follower ID</th><th>Product ID</th><th>Product name</th><th>Nombre d'achat</th></tr></thead><tbody>";
                 for (var i = 0; i < results.length; i++) {
                     var row = "<tr><td>" + id + "</td><td>" + results[i].product_id + "</td><td >" + results[i].product_name + "</td><td>" + results[i].num_purchases  + "</td></tr>";
@@ -121,6 +219,12 @@ function requete2(id){
             success: function(results) {
                 // Traitez la réponse du serveur ici
                 console.log(results)
+                var endTime = new Date().getTime();
+                var executionTime = endTime - startTime;
+                countRows(function(userCount,productsCount,followsCount, purchaseCount ) {
+                    var row_time = "<tr><td> Neo4j </td><td> Requete 2 </td><td>"+ formatTime(executionTime) +"</td><td>"+ userCount +"</td><td>"+ productsCount +"</td><td>"+ followsCount +"</td><td>"+ purchaseCount +"</td>";
+                    $('#table_temps').append(row_time);
+                  });
                 var table_result = "<table id=\"table_result\"><thead><tr><th>Follower ID</th><th>Product ID</th><th>Product name</th><th>Nombre d'achat</th></tr></thead><tbody>";
                 for (var i = 0; i < results.length; i++) {
                     var row = "<tr><td>" + id + "</td><td>" + id_product + "</td><td >" + results[i].product_name + "</td><td>" + results[i].nombre_de_commandes.low  + "</td></tr>";
@@ -153,6 +257,7 @@ $('#btnUtilisateurs').click(() => {
             success: function(results) {
                 // Traitez la réponse du serveur ici
                 console.log(results);
+                
                 // var results = JSON.parse(response);
                 var table = "<table id=\"my-table_user\"><thead><tr><th>ID</th><th>Nom</th><th>Profondeur</th><th>Id Produit</th></th><th>Requete</th></tr></thead><tbody>";
                 for (var i = 0; i < results.length; i++) {
@@ -214,18 +319,20 @@ $('#btnProduits').click(() => {
         $.ajax({
             type: "POST",
             url: "http://localhost:8080/requeteNeo4j",
-            data: { cypherQuery: "MATCH (p:Product) RETURN p LIMIT 10" },
+            data: { cypherQuery: `MATCH (p:Product)
+            RETURN p
+            ORDER BY RAND()
+            LIMIT 10` },
             success: function(results) {
                 // Traitez la réponse du serveur ici
                 // var results = JSON.parse(response);
                 console.log(results)
-                var table = "<table id=\"my-table_products\"><thead><tr><th>ID</th><th>Nom</th><th>Profondeur</th><th>Id Produit</th></th><th>Requete</th></tr></thead><tbody>";
+                var table = "<table id=\"my-table_products\"><thead><tr><th>ID</th><th>Nom</th><th>Profondeur</th></th><th>Requete</th></tr></thead><tbody>";
                 for (var i = 0; i < results.length; i++) {
                     var row = "<tr>"+
                     "<td id="+ results[i].p.properties.product_id.low  +">" + results[i].p.properties.product_id.low + "</td>" +
                     "<td id="+ results[i].p.properties.product_id.low  +">" + results[1].p.properties.product_name + "</td>"+
                     "<td id="+ results[i].p.properties.product_id.low  +">" + "<input type=\"number\" id=\"nb-prof"+ results[i].p.properties.product_id.low  + "\" name=\"nb-prof\" min=\"1\" max=\"5\" value=\"1\"></td>"+
-                    "<td id="+ results[i].p.properties.product_id.low  +">" + "<input type=\"number\" id=\"nb-product"+ results[i].p.properties.product_id.low  + "\" name=\"nb-product\" value=\"1\"></td>"+
                     "<td id="+ results[i].p.properties.product_id.low  +"><button id="+ results[i].p.properties.product_id.low + ">Requête 3</button></td></tr>";
                     table += row;
                 }
@@ -276,8 +383,11 @@ document.addEventListener('click', function(event) {
         let id = event.target.getAttribute("id");
         let level = document.getElementById("nb-prof" + id).value;
         console.log(id)
+        var startTime = new Date().getTime();
 
         if (selecteur.value === "Neo4j") {
+            var endTime = new Date().getTime();
+
             $.ajax({
                 type: "POST",
                 url: "http://localhost:8080/requeteNeo4j",
@@ -290,6 +400,13 @@ document.addEventListener('click', function(event) {
                 success: function(results) {
                     // Traitez la réponse du serveur ici
                     console.log(results)
+                    var endTime = new Date().getTime();
+                    var executionTime = endTime - startTime;
+                    countRows(function(userCount,productsCount,followsCount, purchaseCount ) {
+                        var row_time = "<tr><td> Neo4j </td><td> Requete 3 </td><td>"+ formatTime(executionTime) +"</td><td>"+ userCount +"</td><td>"+ productsCount +"</td><td>"+ followsCount +"</td><td>"+ purchaseCount +"</td>";
+                        $('#table_temps').append(row_time);
+                      });
+                    var tabl
                     var table_result = "<table id=\"table_result\"><thead><tr><th>Product ID</th><th>Nombre de folower ayant acheté</th></tr></thead><tbody>";
                     for (var i = 0; i < results.length; i++) {
                         var row = "<tr><td>" + id + "</td>"+
@@ -330,6 +447,12 @@ document.addEventListener('click', function(event) {
                     // Traitez la réponse du serveur ici
                     var results = JSON.parse(response);
                     console.log(results)
+                    var endTime = new Date().getTime();
+                    var executionTime = endTime - startTime;
+                    countRows(function(userCount,productsCount,followsCount, purchaseCount ) {
+                        var row_time = "<tr><td> SQL </td><td> Requete 3 </td><td>"+ formatTime(executionTime) +"</td><td>"+ userCount +"</td><td>"+ productsCount +"</td><td>"+ followsCount +"</td><td>"+ purchaseCount +"</td>";
+                        $('#table_temps').append(row_time);
+                      });
                     var table_result = "<table id=\"table_result\"><thead><tr><th>Product ID</th><th>Nombre de folower ayant acheté</th></tr></thead><tbody>";
                     for (var i = 0; i < results.length; i++) {
                         var row = "<tr><td>" + id + "</td>"+

@@ -100,11 +100,10 @@ $(document).ready(() => {
             $.ajax({
                 type: "POST",
                 url: "http://localhost:8080/ajoutSQL",
-                data: { sql: `INSERT INTO Follows (follow_id, follower_id, followee_id, follow_date)
-                SELECT ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS follow_id,
-                u1.user_id AS follower_id,
-                u2.user_id AS followee_id,
-                DATE_ADD('2000-01-01', INTERVAL FLOOR(RAND() * 7305) DAY) AS follow_date
+                data: { sql: `INSERT INTO Follows (follower_id, followee_id, follow_date)
+                SELECT u1.user_id AS follower_id,
+                       u2.user_id AS followee_id,
+                       DATE_ADD('2000-01-01', INTERVAL FLOOR(RAND() * 7305) DAY) AS follow_date
                 FROM Users u1, Users u2
                 WHERE u1.user_id <> u2.user_id AND RAND() < `+ nb +`;` },
                 success: function(response) {
@@ -141,12 +140,11 @@ $(document).ready(() => {
             $.ajax({
                 type: "POST",
                 url: "http://localhost:8080/ajoutSQL",
-                data: { sql: `INSERT INTO Purchases (purchase_id, user_id, product_id, purchase_date)
-                SELECT ROW_NUMBER() OVER () AS purchase_id,
-                u.user_id, p.product_id, DATE_ADD(CURDATE(), INTERVAL -FLOOR(RAND() * 3650) DAY)
+                data: { sql: `INSERT INTO Purchases (user_id, product_id, purchase_date)
+                SELECT u.user_id, p.product_id, DATE_ADD(CURDATE(), INTERVAL -FLOOR(RAND() * 3650) DAY)
                 FROM Users u, Products p
                 WHERE RAND() < `+ nb +`;
-                ;` },
+                ` },
                 success: function(response) {
                 console.log(response)
                 },
