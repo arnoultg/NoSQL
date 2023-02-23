@@ -18,6 +18,17 @@ Cette web application permet de tester des requêtes sur différentes bases de d
 | NoSQL          | xx sc     | xx sc     | xx sc     |
 | MariaDB        | xx sc     | xx sc     | xx sc     |
 
+### Installation du projet
+
+Faire un GitClone dans un répertoire et ensuite utilisé un
+
+`npm install`
+
+Pour vous connecter a votre base, je vous conseille de modifier le db.js pour correspondre a vos login
+
+Pour lancer l'application :
+
+`npm start`
 
 
 ### Conclusion :
