@@ -49,7 +49,16 @@ RETURN COUNT(DISTINCT f) AS nombre_de_followers, COUNT() AS nombre_de_commandes
 //$PRODUCT : produit ciblé
 //$LEVEL : profondeur souhaité
 
-MATCH (p:Product {product_name:$PRODUCT})<-[:PURCHASED]-(u:User)-[:FOLLOWS*0..$LEVEL]->(f:User)
-RETURN COUNT(DISTINCT u) AS nombre_de_personnes, COUNT(DISTINCT f) AS nombre_de_followers, $LEVEL AS niveau
+// Récupérer les utilisateurs qui ont acheté le produit donné
+MATCH (p:Product {product_id: $PRODUCT})<-[:PURCHASED]-(u:User)
+
+// Pour chaque niveau de 0 à n, récupérer les followers de chaque utilisateur
+MATCH (u)-[:FOLLOWS*$LEVEL]->(f:User)
+
+// Récupérer les achats des followers de chaque utilisateur
+MATCH (f)-[:PURCHASED]->(p)
+
+// Retourner le niveau, le nombre de followers et le nombre de commandes pour le produit donné
+RETURN  COUNT(DISTINCT f) AS nombre_de_followers, COUNT(*) AS nombre_de_commandes
 
 
