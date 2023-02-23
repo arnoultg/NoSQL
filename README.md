@@ -7,8 +7,11 @@ Les utilisateurs peuvent suivre d'autres utilisateurs de manière orientée, et 
 
 Tout ces test sont dans le but de savoir quel est le modèle de base de données le plus efficace est dans quel but ?
 
+### WEB
 
-#Resultat des tests
+Cette web application permet de tester des requêtes sur différentes bases de données à travers une interface utilisateur simple et intuitive, elle donne le temps d'exécution de chaque requete. Elle est codée en HTML, CSS et JavaScript, ce qui la rend facilement accessible et modifiable. L'application est conçue pour fournir des résultats précis et clairs pour chaque requête exécutée, en offrant également une option pour remplir facilement les bases avec un interface intuitive. Grâce à cette application, les utilisateurs peuvent tester rapidement et efficacement leurs requêtes sur différentes bases de données, ce qui permet de faire un comparatif rapide entre les 2 technologies de bases de données.
+
+### Resultat des tests
 
 | Base de données | Requete 1 | Requete 2 | Requete 3 |
 |----------------|-----------|-----------|-----------|
@@ -17,7 +20,7 @@ Tout ces test sont dans le but de savoir quel est le modèle de base de données
 
 
 
-#Conclusion :
+### Conclusion :
 
 Les deux bases de données que nous avons créées sont différentes et ont chacune leurs avantages et leurs inconvénients en fonction des cas d'utilisation:
 
