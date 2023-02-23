@@ -53,6 +53,29 @@ app.post('/requeteSQL', function(req, res) {
       });
   });
 
+  app.post('/ajoutSQL', function(req, res) {
+    var sql = req.body.sql;
+    db.pool.getConnection()
+      .then(conn => {
+        conn.query(sql)
+          .then(() => {
+            conn.release();
+            res.send('Données ajoutées avec succès SQL');
+          })
+          .catch(err => {
+            conn.release();
+            console.log(err);
+            res.status(500).send('Erreur lors de l\'ajout des données');
+          });
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(500).send('Erreur lors de la connexion à la base de données');
+      });
+});
+
+
+
 app.post('/requeteNeo4j', function(req, res) {
     var cypherQuery = req.body.cypherQuery;
     const session = db.driver.session();
@@ -69,6 +92,21 @@ app.post('/requeteNeo4j', function(req, res) {
       });
   });
 
+app.post('/ajoutNeo4j', function(req, res) {
+    var cypherQuery = req.body.cypherQuery;
+    const session = db.driver.session();
+  
+    session.run(cypherQuery)
+      .then(() => {
+        session.close();
+        res.send('Données ajoutées avec succès Neo4j');
+      })
+      .catch(err => {
+        session.close();
+        console.log(err);
+        res.status(500).send('Erreur lors de l\'ajout des données');
+      });
+  })
 
 app.use("/", express.static(".")); 
 app.use("/", express.static("views"));

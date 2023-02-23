@@ -6,17 +6,17 @@ USE Relational;
 
 ------------------Création des Tables-----------------------
 CREATE TABLE Users (
-  user_id INT(11) PRIMARY KEY,
+  user_id INT(11) PRIMARY KEY AUTO_INCREMENT,
   username VARCHAR(50)
 );
 
 CREATE TABLE Products (
-  product_id INT PRIMARY KEY,
+  product_id INT PRIMARY KEY AUTO_INCREMENT,
   product_name VARCHAR(50)
 );
 
 CREATE TABLE Purchases (
-  purchase_id INT PRIMARY KEY,
+  purchase_id INT PRIMARY KEY AUTO_INCREMENT,
   user_id INT,
   product_id INT,
   purchase_date DATE,
@@ -25,7 +25,7 @@ CREATE TABLE Purchases (
 );
 
 CREATE TABLE Follows (
-  follow_id INT PRIMARY KEY,
+  follow_id INT PRIMARY KEY AUTO_INCREMENT,
   follower_id INT,
   followee_id INT,
   follow_date DATE,

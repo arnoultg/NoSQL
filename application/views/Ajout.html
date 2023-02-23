@@ -9,26 +9,39 @@
   <body>
     <div>
       <h1>Ajouter des utilisateurs et des produits</h1>
-      <form>
-        <fieldset>
-          <legend>Ajouter des utilisateurs</legend>
-          <label for="nb-users">Nombre d'utilisateurs à ajouter :</label>
-          <input type="number" id="nb-users" name="nb-users" min="1" max="10000" required>
-          <button type="submit" id="add-users">Ajouter</button>
-        </fieldset>
-      </form>
-      <form>
-        <fieldset>
-          <legend>Ajouter des produits</legend>
-          <label for="nb-products">Nombre de produits à ajouter :</label>
-          <input type="number" id="nb-products" name="nb-products" min="1" max="10000" required>
-          <button type="submit" id="add-products">Ajouter</button>
-        </fieldset>
-      </form>
+      <p>Veuillez sélectionner une base de données :</p>
+      <select id="selecteur">
+          <option value="Neo4j">Neo4j</option>
+          <option value="MariaDB">MariaDB</option>
+      </select>
+      <fieldset>
+        <legend>Ajouter des utilisateurs</legend>
+        <label for="nb-users">Nombre d'utilisateurs à ajouter :</label>
+        <input type="number" id="nb-users" name="nb-users" min="1" max="10000" required>
+        <button type="submit" id="add-users">Ajouter</button>
+      </fieldset>
+      <fieldset>
+        <legend>Ajouter des liens (min = 0 - max = 0.02)</legend>
+        <label for="nb-link">Nombre de lien à ajouter :</label>
+        <input type="float" id="nb-link" name="nb-link" default="0.02" min="0" max="0.02" required>
+        <button type="submit" id="add-link">Ajouter</button>
+      </fieldset>
+      <fieldset>
+        <legend>Ajouter des produits</legend>
+        <label for="nb-products">Nombre de produits à ajouter :</label>
+        <input type="number" id="nb-products" name="nb-products" min="1" max="10000" required>
+        <button type="submit" id="add-products">Ajouter</button>
+      </fieldset>
+      <fieldset>
+        <legend>Ajouter des achats</legend>
+        <label for="nb-achat">Nombre d'achat par user:</label>
+        <input type="float" id="nb-achat" name="nb-achat" default="0.02" min="0" max="0.02" required>
+        <button type="submit" id="add-achat">Ajouter</button>
+      </fieldset>
     </div>
 
     <div>
-      <button id="BtnRetour">Retour home</button>
+      <button type="submit" id="BtnRetour">Retour home</button>
     </div>
     <script src="../script_ajout.js"></script>
   </body>

@@ -1,64 +1,73 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
-    margin: 0;
-    padding: 0;
-  }
-  
-  h1 {
-    color: #333;
-    font-size: 28px;
-    font-weight: bold;
-    margin: 20px 0;
-  }
-  
-  form {
-    background-color: #fff;
-    padding: 20px;
-    margin: 20px auto;
-    max-width: 600px;
-    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.3);
-  }
-  
-  fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  legend {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  
-  label {
-    display: block;
-    font-size: 18px;
-    margin-bottom: 10px;
-  }
-  
-  input[type="number"] {
-    font-size: 18px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 100%;
-    box-sizing: border-box;
-    margin-bottom: 20px;
-  }
-  
-  button[type="submit"] {
-    font-size: 18px;
-    padding: 10px 20px;
-    background-color: #008cba;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  button[type="submit"]:hover {
-    background-color: #00678f;
-  }
-  
+  background-color: #f8f8f8;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+h1 {
+  color: #333;
+  font-size: 28px;
+  font-weight: bold;
+  margin-top: 0;
+  text-align: center;
+}
+
+fieldset {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 20px 0;
+  padding: 20px;
+}
+
+legend {
+  color: #333;
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0 0 10px;
+}
+
+label {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+input[type="number"] {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  padding: 10px;
+  width: 100%;
+}
+
+button[type="submit"] {
+  background-color: #333;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 18px;
+  margin-top: 10px;
+  padding: 10px 20px;
+}
+
+button[type="submit"]:hover {
+  background-color: #555;
+}
+
+#BtnRetour {
+  background-color: #ccc;
+  border: none;
+  border-radius: 5px;
+  color: #333;
+  cursor: pointer;
+  font-size: 18px;
+  margin-top: 20px;
+  padding: 10px 20px;
+}
+
+#BtnRetour:hover {
+  background-color: #999;
+}

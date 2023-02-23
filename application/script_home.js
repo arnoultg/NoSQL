@@ -42,14 +42,18 @@ function requete1(id){
     }else if (selecteur.value === "Neo4j") {
         $.ajax({
             type: "POST",
-            url: "http://localhost:8080/requeteSQL",
-            data: { sql: `` },
-            success: function(response) {
+            url: "http://localhost:8080/requeteNeo4j",
+            data: { cypherQuery: `
+                MATCH (u:User {user_id:`+ id +`})-[:FOLLOWS*0..`+ level +`]->(f:User)-[:PURCHASED]->(p:Product)
+                RETURN p.product_id AS product_id ,p.product_name AS product_name, COUNT(DISTINCT f) AS nombre_de_followers, COUNT(*) AS nombre_de_commandes
+                ORDER BY nombre_de_commandes DESC
+            ` },
+            success: function(results) {
                 // Traitez la réponse du serveur ici
-                console.log(results)
+                console.log(results[1])
                 var table_result = "<table id=\"table_result\"><thead><tr><th>Follower ID</th><th>ID</th><th>Produits</th><th>Nombre d'achat</th></tr></thead><tbody>";
                 for (var i = 0; i < results.length; i++) {
-                    var row = "<tr><td>" + results[i].follower_id + "</td><td>" + results[i].product_id + "</td><td >" + results[i].product_name + "</td><td>" + results[i].num_purchases  + "</td></tr>";
+                    var row = "<tr><td>" + id + "</td><td>" + results[i].product_id.low + "</td><td >" + results[i].product_name + "</td><td>" + results[i].nombre_de_commandes.low  + "</td></tr>";
                     table_result += row;
                 }
 
@@ -96,7 +100,7 @@ function requete2(id){
                 console.log(results)
                 var table_result = "<table id=\"table_result\"><thead><tr><th>Follower ID</th><th>Product ID</th><th>Product name</th><th>Nombre d'achat</th></tr></thead><tbody>";
                 for (var i = 0; i < results.length; i++) {
-                    var row = "<tr><td>" + results[i].follower_id + "</td><td>" + results[i].product_id + "</td><td >" + results[i].product_name + "</td><td>" + results[i].num_purchases  + "</td></tr>";
+                    var row = "<tr><td>" + id + "</td><td>" + results[i].product_id + "</td><td >" + results[i].product_name + "</td><td>" + results[i].num_purchases  + "</td></tr>";
                     table_result += row;
                 }
 
@@ -108,8 +112,29 @@ function requete2(id){
                 console.log("erreur ici :", error);
             }
         });
-    }else if (selecteur.value === "Neo4J") {
+    }else if (selecteur.value === "Neo4j") {
+        $.ajax({
+            type: "POST",
+            url: "http://localhost:8080/requeteNeo4j",
+            data: { cypherQuery: `MATCH (u:User {user_id:`+ id +`})-[:FOLLOWS*0..`+ level +`]->(f:User)-[:PURCHASED]->(p:Product {product_id: `+id_product +`})
+            RETURN p.product_name AS product_name, COUNT(DISTINCT f) AS nombre_de_followers, COUNT(*) AS nombre_de_commandes` },
+            success: function(results) {
+                // Traitez la réponse du serveur ici
+                console.log(results)
+                var table_result = "<table id=\"table_result\"><thead><tr><th>Follower ID</th><th>Product ID</th><th>Product name</th><th>Nombre d'achat</th></tr></thead><tbody>";
+                for (var i = 0; i < results.length; i++) {
+                    var row = "<tr><td>" + id + "</td><td>" + id_product + "</td><td >" + results[i].product_name + "</td><td>" + results[i].nombre_de_commandes.low  + "</td></tr>";
+                    table_result += row;
+                }
 
+                table_result += "</tbody></table>";
+                $('#tableau_result').html(table_result);
+            },
+            error: function(xhr, status, error) {
+                // Traitez l'erreur ici
+                console.log("erreur ici :", error);
+            }
+        });
     }
 }
 
@@ -124,19 +149,19 @@ $('#btnUtilisateurs').click(() => {
         $.ajax({
             type: "POST",
             url: "http://localhost:8080/requeteNeo4j",
-            data: { cypherQuery: "MATCH (n) RETURN n LIMIT 10" },
+            data: { cypherQuery: "MATCH (u:User) RETURN u LIMIT 10" },
             success: function(results) {
                 // Traitez la réponse du serveur ici
-                console.log(results[1].n);
+                console.log(results);
                 // var results = JSON.parse(response);
                 var table = "<table id=\"my-table_user\"><thead><tr><th>ID</th><th>Nom</th><th>Profondeur</th><th>Id Produit</th></th><th>Requete</th></tr></thead><tbody>";
                 for (var i = 0; i < results.length; i++) {
                     var row = "<tr>"+
-                    "<td id="+ results[i].n.properties.user_id.low  +">" + results[i].n.properties.user_id.low + "</td>" +
-                    "<td id="+ results[i].n.properties.user_id.low  +">" + results[1].n.properties.username + "</td>"+
-                    "<td id="+ results[i].n.properties.user_id.low  +">" + "<input type=\"number\" id=\"nb-prof"+ results[i].n.properties.user_id.low  + "\" name=\"nb-prof\" min=\"1\" max=\"5\" value=\"1\"></td>"+
-                    "<td id="+ results[i].n.properties.user_id.low  +">" + "<input type=\"number\" id=\"nb-product"+ results[i].n.properties.user_id.low  + "\" name=\"nb-product\" value=\"1\"></td>"+
-                    "<td><button id="+results[i].n.properties.user_id.low +" onclick=\"requete1("+ results[i].n.properties.user_id.low +")\">Requête 1</button><button id="+results[i].n.properties.user_id.low +" onclick=\"requete2("+ results[i].n.properties.user_id.low +")\">Requête 2</button>" + "</td></tr>";
+                    "<td id="+ results[i].u.properties.user_id.low  +">" + results[i].u.properties.user_id.low + "</td>" +
+                    "<td id="+ results[i].u.properties.user_id.low  +">" + results[1].u.properties.username + "</td>"+
+                    "<td id="+ results[i].u.properties.user_id.low  +">" + "<input type=\"number\" id=\"nb-prof"+ results[i].u.properties.user_id.low  + "\" name=\"nb-prof\" min=\"1\" max=\"5\" value=\"1\"></td>"+
+                    "<td id="+ results[i].u.properties.user_id.low  +">" + "<input type=\"number\" id=\"nb-product"+ results[i].u.properties.user_id.low  + "\" name=\"nb-product\" value=\"1\"></td>"+
+                    "<td><button id="+results[i].u.properties.user_id.low +" onclick=\"requete1("+ results[i].u.properties.user_id.low +")\">Requête 1</button><button id="+results[i].u.properties.user_id.low +" onclick=\"requete2("+ results[i].u.properties.user_id.low +")\">Requête 2</button>" + "</td></tr>";
                     table += row;
                 }
 
@@ -154,7 +179,7 @@ $('#btnUtilisateurs').click(() => {
         $.ajax({
             type: "POST",
             url: "http://localhost:8080/requeteSQL",
-            data: { sql: "SELECT * FROM Users ORDER BY RAND()" },
+            data: { sql: "SELECT * FROM Users ORDER BY RAND() LIMIT 10" },
             success: function(response) {
                 // Traitez la réponse du serveur ici
                 var results = JSON.parse(response);
@@ -186,41 +211,39 @@ $('#btnProduits').click(() => {
     $('#tableau_user').empty();
     console.log(selecteur.value)
     if (selecteur.value === "Neo4j") {
-        console.log("titi")
-        // query_user = "MATCH (u:Utilisateur) RETURN u.user_id, u.username";
-        // session = driver_neo4j.session();
-        // const params = {};
+        $.ajax({
+            type: "POST",
+            url: "http://localhost:8080/requeteNeo4j",
+            data: { cypherQuery: "MATCH (p:Product) RETURN p LIMIT 10" },
+            success: function(results) {
+                // Traitez la réponse du serveur ici
+                // var results = JSON.parse(response);
+                console.log(results)
+                var table = "<table id=\"my-table_products\"><thead><tr><th>ID</th><th>Nom</th><th>Profondeur</th><th>Id Produit</th></th><th>Requete</th></tr></thead><tbody>";
+                for (var i = 0; i < results.length; i++) {
+                    var row = "<tr>"+
+                    "<td id="+ results[i].p.properties.product_id.low  +">" + results[i].p.properties.product_id.low + "</td>" +
+                    "<td id="+ results[i].p.properties.product_id.low  +">" + results[1].p.properties.product_name + "</td>"+
+                    "<td id="+ results[i].p.properties.product_id.low  +">" + "<input type=\"number\" id=\"nb-prof"+ results[i].p.properties.product_id.low  + "\" name=\"nb-prof\" min=\"1\" max=\"5\" value=\"1\"></td>"+
+                    "<td id="+ results[i].p.properties.product_id.low  +">" + "<input type=\"number\" id=\"nb-product"+ results[i].p.properties.product_id.low  + "\" name=\"nb-product\" value=\"1\"></td>"+
+                    "<td id="+ results[i].p.properties.product_id.low  +"><button id="+ results[i].p.properties.product_id.low + ">Requête 3</button></td></tr>";
+                    table += row;
+                }
 
-        // session.run(query_user, params)
-        // .then(result => {
-        //         let records = result.records;
-        //         let table = $('<table>').addClass('tableau');
-        //         let tr = $('<tr>');
-        //         tr.append($('<th>').text('Id'));
-        //         tr.append($('<th>').text('Username'));
-        //         table.append(tr);
-
-        //         records.forEach(record => {
-        //             let tr = $('<tr>');
-        //             tr.append($('<td>').text(record.get('u.user_id')));
-        //             tr.append($('<td>').text(record.get('u.username')));
-        //             table.append(tr);
-        //     });
-
-        //     $('#tableau').html(table);
-        // })
-        // .catch(error => {
-        //     console.error(error);
-        // })
-        // .finally(() => {
-        //     session.close();
-        // });
+                table += "</tbody></table>";
+                $('#tableau_user').html(table);
+            },
+            error: function(xhr, status, error) {
+                // Traitez l'erreur ici
+                console.log("erreur ici :", error);
+            }
+        });
 
     } else if (selecteur.value === "MariaDB") {
         $.ajax({
             type: "POST",
             url: "http://localhost:8080/requeteSQL",
-            data: { sql: "SELECT * FROM Products ORDER BY RAND()" },
+            data: { sql: "SELECT * FROM Products ORDER BY RAND() LIMIT 10" },
             success: function(response) {
                 // Traitez la réponse du serveur ici
                 var results = JSON.parse(response);
@@ -253,43 +276,76 @@ document.addEventListener('click', function(event) {
         let id = event.target.getAttribute("id");
         let level = document.getElementById("nb-prof" + id).value;
         console.log(id)
-        $.ajax({
-            type: "POST",
-            url: "http://localhost:8080/requeteSQL",
-            data: { sql: `WITH RECURSIVE followers(follower_id, followee_id, level) AS (
-                SELECT follower_id, followee_id, 1 FROM Follows WHERE followee_id IN (
-                  SELECT user_id FROM Purchases WHERE product_id = `+ id +`
-                )
-                UNION
-                SELECT f.follower_id, f.followee_id, level + 1
-                FROM Follows f
-                JOIN followers ON f.follower_id = followers.followee_id
-                WHERE level < `+ level +`
-              )
-              SELECT pur.product_id, COUNT(DISTINCT f.followee_id) as num_followees
-              FROM followers f
-              JOIN Purchases pur ON f.followee_id = pur.user_id
-              WHERE pur.product_id = `+ id`;
-              ` },
-            success: function(response) {
-                // Traitez la réponse du serveur ici
-                var results = JSON.parse(response);
-                console.log(results)
-                var table_result = "<table id=\"table_result\"><thead><tr><th>Product ID</th><th>Nombre de folower ayant acheté</th></tr></thead><tbody>";
-                for (var i = 0; i < results.length; i++) {
-                    var row = "<tr><td>" + results[i].product_id + "</td>"+
-                    "<td>" + results[i].num_followees + "</td>";
-                    table_result += row;
-                }
 
-                table_result += "</tbody></table>";
-                $('#tableau_result').html(table_result);
-            },
-            error: function(xhr, status, error) {
-                // Traitez l'erreur ici
-                console.log("erreur ici :", error);
-            }
-        });
+        if (selecteur.value === "Neo4j") {
+            $.ajax({
+                type: "POST",
+                url: "http://localhost:8080/requeteNeo4j",
+                data: { cypherQuery: `MATCH (p:Product {product_id: `+ id +`})<-[:PURCHASED]-(u:User)
+                MATCH (u)-[:FOLLOWS*`+ level +`]->(f:User)
+                MATCH (f)-[:PURCHASED]->(p)
+                RETURN  COUNT(DISTINCT f) AS nombre_de_followers, COUNT(*) AS nombre_de_commandes
+                `
+                },
+                success: function(results) {
+                    // Traitez la réponse du serveur ici
+                    console.log(results)
+                    var table_result = "<table id=\"table_result\"><thead><tr><th>Product ID</th><th>Nombre de folower ayant acheté</th></tr></thead><tbody>";
+                    for (var i = 0; i < results.length; i++) {
+                        var row = "<tr><td>" + id + "</td>"+
+                        "<td>" + results[i].nombre_de_followers.low + "</td>";
+                        table_result += row;
+                    }
+
+                    table_result += "</tbody></table>";
+                    $('#tableau_result').html(table_result);
+                },
+                error: function(xhr, status, error) {
+                    // Traitez l'erreur ici
+                    console.log("erreur ici :", error);
+                }
+            });
+        } else if (selecteur.value === "MariaDB") {
+
+            $.ajax({
+                type: "POST",
+                url: "http://localhost:8080/requeteSQL",
+                data: { sql: `SELECT COUNT(DISTINCT f.followee_id) AS num_followees
+                FROM Users u
+                INNER JOIN (
+                    WITH RECURSIVE followers(follower_id, followee_id, level) AS (
+                        SELECT follower_id, followee_id, 1 FROM Follows WHERE followee_id IN (
+                            SELECT user_id FROM Purchases WHERE product_id = ` + id + `
+                        )
+                        UNION
+                        SELECT f.follower_id, f.followee_id, level + 1
+                        FROM Follows f
+                        JOIN followers ON f.follower_id = followers.followee_id
+                        WHERE level < `+ level +`
+                    )
+                    SELECT followee_id FROM followers
+                ) AS f ON u.user_id = f.followee_id;`
+                },
+                success: function(response) {
+                    // Traitez la réponse du serveur ici
+                    var results = JSON.parse(response);
+                    console.log(results)
+                    var table_result = "<table id=\"table_result\"><thead><tr><th>Product ID</th><th>Nombre de folower ayant acheté</th></tr></thead><tbody>";
+                    for (var i = 0; i < results.length; i++) {
+                        var row = "<tr><td>" + id + "</td>"+
+                        "<td>" + results[i].num_followees + "</td>";
+                        table_result += row;
+                    }
+
+                    table_result += "</tbody></table>";
+                    $('#tableau_result').html(table_result);
+                },
+                error: function(xhr, status, error) {
+                    // Traitez l'erreur ici
+                    console.log("erreur ici :", error);
+                }
+            });
+        }
 
     }
   });
