@@ -40,7 +40,7 @@ ORDER BY nombre_de_followers DESC
 //$PRODUCT : produit ciblé
 
 MATCH (u:User {user_id:$USER})-[:FOLLOWS*0..$LEVEL]->(f:User)-[:PURCHASED]->(p:Product {product_id: $PRODUCT})
-RETURN COUNT(DISTINCT f) AS nombre_de_followers, COUNT() AS nombre_de_commandes
+RETURN COUNT(DISTINCT f) AS nombre_de_followers, COUNT(*) AS nombre_de_commandes
 
 
 //----------------REQUETE 3 -----------------
