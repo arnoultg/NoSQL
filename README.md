@@ -13,7 +13,7 @@ Cette web application permet de tester des requêtes sur différentes bases de d
 
 ### Resultat des tests
 
-Ce petit tableau résume le temps d'éxecution de chacune des requetes pour chacune des technos.
+Ce petit tableau résume le temps d'éxecution de chacune des requetes pour chacune des technos mis sous haute volumétrie.
 
 | Base de données | Requete 1 | Requete 2 | Requete 3 |
 |----------------|-----------|-----------|-----------|
