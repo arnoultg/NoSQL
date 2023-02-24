@@ -17,8 +17,8 @@ Ce petit tableau résume le temps d'éxecution de chacune des requetes pour chac
 
 | Base de données | Requete 1 | Requete 2 | Requete 3 |
 |----------------|-----------|-----------|-----------|
-| NoSQL          | xx sc     | xx sc     | xx sc     |
-| MariaDB        | xx sc     | xx sc     | xx sc     |
+| NoSQL          | 13.02 sc     | 12.74 sc     | 16.2 sc     |
+| MariaDB        | 14.23 sc     | 13.51 sc     | 11.3 sc     |
 
 ### Installation du projet
 
