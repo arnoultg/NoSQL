@@ -15,6 +15,29 @@ Cette web application permet de tester des requêtes sur différentes bases de d
 
 Ce petit tableau résume le temps d'éxecution de chacune des requetes pour chacune des technos mis sous haute volumétrie.
 
+### Configuration de la base
+
+Modifier le fichier mycnf.conf
+'innodb_buffer_pool_size = 1G'
+
+Cela permet d'augmenter la charge maximale et permettra d'injecter plus de donnée sans etre limité par les tampons de sécurité de mariaDB
+
+
+### Creation des bases
+| Base de données | Users | Products | Purchases  | Follows 
+|----------------|-----------|-----------|-----------|-----------|
+| MariaDB    | 0.014 sc     | 0.010 sc     | 0.016 sc     | 0.013 sc     |
+| NoSQL      | 14.23 sc     | 13.51 sc     | 11.3 sc     | 11.3 sc     |
+
+
+### Remplissage des tables/noeuds
+| Base de données | Users (100 000)| Products | Purchases  | Follows 
+|----------------|-----------|-----------|-----------|
+| MariaDB    | 3h     | 20 sc     | 4.195 sc     | 31.678 sc     |
+| NoSQL      | 14.23 sc     | 13.51 sc     | 11.3 sc     | 11.3 sc     |
+
+
+
 | Base de données | Requete 1 | Requete 2 | Requete 3 |
 |----------------|-----------|-----------|-----------|
 | NoSQL          | 13.02 sc     | 12.74 sc     | 16.2 sc     |
