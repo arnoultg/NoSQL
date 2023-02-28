@@ -24,21 +24,21 @@ Cela permet d'augmenter la charge maximale et permettra d'injecter plus de donn�
 ### Schéma de la base
 ![image](https://user-images.githubusercontent.com/63504817/221924772-db3b1eaf-2d37-46a9-9268-643b4e551442.png)
 
-### Creation des bases
+### Creation des bases :
 | Base de données | Users | Products | Purchases  | Follows 
 |----------------|-----------|-----------|-----------|-----------|
 | MariaDB    | 0.014 sc     | 0.010 sc     | 0.016 sc     | 0.013 sc     |
 | NoSQL      | 14.23 sc     | 13.51 sc     | 11.3 sc     | 11.3 sc     |
 
 
-### Remplissage des tables/noeuds
-| Base de données | Users (100 000)| Products | Purchases  | Follows 
-|----------------|-----------|-----------|-----------|
-| MariaDB    | 3h     | 20 sc     | 4.195 sc     | 31.678 sc     |
-| NoSQL      | 14.23 sc     | 13.51 sc     | 11.3 sc     | 11.3 sc     |
+### Remplissage des tables/noeuds :
+| Base de données | Users     | Products  | Purchases | Follows 
+|-----------------|-----------|-----------|-----------|-------------|
+| MariaDB         | 3h        | 20 sc     | 4.195 sc  | 31.678 sc     |
+| NoSQL           | 14.23 sc  | 13.51 sc  | 11.3 sc   | 11.3 sc     |
 
 
-
+### Temps des requetes :
 | Base de données | Requete 1 | Requete 2 | Requete 3 |
 |----------------|-----------|-----------|-----------|
 | NoSQL          | 13.02 sc     | 12.74 sc     | 16.2 sc     |
