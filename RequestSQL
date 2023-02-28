@@ -33,8 +33,8 @@ CREATE TABLE Follows (
   FOREIGN KEY (followee_id) REFERENCES Users(user_id)
 );
 ----------------Insertion des données --------------------------
-INSERT INTO Users (user_id, username)
-SELECT n, CONCAT('User ', n)
+INSERT INTO Users (username)
+SELECT CONCAT('User ', n)
 FROM (SELECT ROW_NUMBER() OVER () AS n FROM information_schema.columns) AS nums
 WHERE n <= 1000000;
 
@@ -44,7 +44,7 @@ SELECT ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS follow_id,
   u2.user_id AS followee_id,
   DATE_ADD('2000-01-01', INTERVAL FLOOR(RAND() * 7305) DAY) AS follow_date
 FROM Users u1, Users u2
-WHERE u1.user_id <> u2.user_id AND RAND() < 0.02;
+WHERE u1.user_id <> u2.user_id AND RAND() < 0.2;
 
 INSERT INTO Products (product_id, product_name)
 SELECT n, CONCAT('Product ', n)
@@ -55,7 +55,7 @@ INSERT INTO Purchases (purchase_id, user_id, product_id, purchase_date)
 SELECT ROW_NUMBER() OVER () AS purchase_id,
   u.user_id, p.product_id, DATE_ADD(CURDATE(), INTERVAL -FLOOR(RAND() * 3650) DAY)
 FROM Users u, Products p
-WHERE RAND() < 0.002;
+WHERE RAND() < 0.02;
 
 
 ------------------INDEX-------------------
@@ -72,22 +72,15 @@ CREATE INDEX idx_products_product_name ON Products (product_name);
 --$LEVEL
 --$Follower_ID
 
-
-
-WITH RECURSIVE followers(follower_id, followee_id, level) AS (
-  SELECT follower_id, followee_id, 1 FROM Follows WHERE follower_id = $Follower_ID
-  UNION
-  SELECT f.follower_id, f.followee_id, level + 1
-  FROM Follows f
-  JOIN followers ON f.follower_id = followers.followee_id
-  WHERE level < $LEVEL
-)
-SELECT f.follower_id , p.product_id, p.product_name, COUNT(*) as num_purchases
-FROM followers f 
-JOIN Purchases pur ON f.followee_id = pur.user_id
-JOIN Products p ON pur.product_id = p.product_id
-GROUP BY p.product_id, p.product_name
-ORDER BY f.follower_id;
+INSERT INTO Follows (follower_id, followee_id, follow_date)
+SELECT u1.user_id, u2.user_id, CURDATE()
+FROM Users u1
+JOIN Users u2 ON u1.user_id <> u2.user_id
+WHERE u1.user_id BETWEEN 1 AND (SELECT MAX(u1.user_id) FROM Users)
+AND u2.user_id BETWEEN 1 AND (SELECT MAX(u2.user_id) FROM Users)
+AND RAND() < 0.1
+AND (SELECT COUNT(*) FROM Follows WHERE follower_id = u1.user_id) < 20
+AND NOT EXISTS (SELECT * FROM Follows f WHERE f.follower_id = u1.user_id AND f.followee_id = u2.user_id);
 
 
 -- On peut changer le LEVEL pour avoir une profondeur selon ce que l'on souhaite
