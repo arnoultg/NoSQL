@@ -22,7 +22,9 @@ Modifier le fichier mycnf.conf
 
 Cela permet d'augmenter la charge maximale et permettra d'injecter plus de donnée sans etre limité par les tampons de sécurité de mariaDB
 ### Schéma de la base
-![image](https://user-images.githubusercontent.com/63504817/221927606-958630ed-b576-4c6f-aa3c-dd2713ff6cea.png)
+
+![image](https://user-images.githubusercontent.com/63504817/221928222-cb8c9d3e-01ec-4441-97ce-41128769e809.png)
+
 
 ### Creation des bases :
 | Base de données | Users | Products | Purchases  | Follows 
