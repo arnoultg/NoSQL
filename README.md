@@ -30,14 +30,14 @@ Cela permet d'augmenter la charge maximale et permettra d'injecter plus de donn�
 | Base de données | Users | Products | Purchases  | Follows 
 |----------------|-----------|-----------|-----------|-----------|
 | MariaDB    | 0.014 sc     | 0.010 sc     | 0.016 sc     | 0.013 sc     |
-| NoSQL      | 14.23 sc     | 13.51 sc     | 11.3 sc     | 11.3 sc     |
+| NoSQL      | 0.012 sc     | 0.008 sc     | 0.012 sc     | 0.047 sc     |
 
 
 ### Remplissage des tables/noeuds :
 | Base de données | Users     | Products  | Purchases | Follows 
 |-----------------|-----------|-----------|-----------|-------------|
-| MariaDB         | 3h        | 20 sc     | 4.195 sc  | 31.678 sc     |
-| NoSQL           | 14.23 sc  | 13.51 sc  | 11.3 sc   | 11.3 sc     |
+| MariaDB         | 20 min    | 4sc       | 4.195 sc  | NA (trop long ) |
+| NoSQL           | 14.23 sc  | 13.51 sc  | NA sc   | NA sc     |
 
 
 ### Temps des requetes :
