@@ -21,7 +21,8 @@ Modifier le fichier mycnf.conf
 'innodb_buffer_pool_size = 1G'
 
 Cela permet d'augmenter la charge maximale et permettra d'injecter plus de donnée sans etre limité par les tampons de sécurité de mariaDB
-
+### Schéma de la base
+![image](https://user-images.githubusercontent.com/63504817/221924772-db3b1eaf-2d37-46a9-9268-643b4e551442.png)
 
 ### Creation des bases
 | Base de données | Users | Products | Purchases  | Follows 
