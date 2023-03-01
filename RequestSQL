@@ -32,31 +32,84 @@ CREATE TABLE Follows (
   FOREIGN KEY (follower_id) REFERENCES Users(user_id),
   FOREIGN KEY (followee_id) REFERENCES Users(user_id)
 );
+
+DELIMITER //
+CREATE OR REPLACE PROCEDURE add_random_followers_to_user() 
+BEGIN
+    DECLARE max_users INT;
+    DECLARE num_followers INT;
+    DECLARE user_id INT DEFAULT 1;
+    DECLARE i INT DEFAULT 1;
+    DECLARE rand_num INT;
+    
+    SELECT COUNT(*) INTO max_users FROM Users;
+
+    WHILE user_id <= max_users DO
+      SELECT COUNT(*) INTO num_followers FROM Follows WHERE follower_id = user_id;
+      IF num_followers = 0 THEN
+        SET i = 0;
+        SET num_followers = FLOOR(RAND() * 20);
+        WHILE i <= num_followers DO
+            SET rand_num = FLOOR(RAND() * max_users);
+            INSERT INTO Follows (follower_id, followee_id, follow_date)
+            VALUES (user_id, rand_num+1, NOW());
+            SET i = i + 1;
+        END WHILE;
+      END IF;
+      
+      SET user_id = user_id + 1;
+    END WHILE;
+END; //
+DELIMITER ;
+
+DELIMITER //
+CREATE OR REPLACE PROCEDURE add_random_product_to_user() 
+BEGIN
+    DECLARE max_users INT;
+    DECLARE max_product INT;
+    DECLARE num_product INT;
+    DECLARE user_id INT DEFAULT 1;
+    DECLARE i INT DEFAULT 1;
+    DECLARE rand_num INT;
+    
+    SELECT COUNT(*) INTO max_users FROM Users;
+    SELECT COUNT(*) INTO max_product FROM Products;
+
+    WHILE user_id <= max_users DO
+      SELECT COUNT(*) INTO num_product FROM Purchases p WHERE p.user_id = user_id;
+      IF num_product = 0 THEN
+        SET i = 0;
+        SET num_product = FLOOR(RAND() * 5);
+        WHILE i <= num_product DO
+            SET rand_num = FLOOR(RAND() * max_product);
+            INSERT INTO Purchases (user_id, product_id, purchase_date)
+            VALUES (user_id, rand_num+1, NOW());
+            SET i = i + 1;
+        END WHILE;
+      END IF;
+      
+      SET user_id = user_id + 1;
+    END WHILE;
+END; //
+DELIMITER ;
+
 ----------------Insertion des données --------------------------
 INSERT INTO Users (username)
 SELECT CONCAT('User ', n)
 FROM (SELECT ROW_NUMBER() OVER () AS n FROM information_schema.columns) AS nums
-WHERE n <= 1000000;
+WHERE n <= 10000;
 
-INSERT INTO Follows (follow_id, follower_id, followee_id, follow_date)
-SELECT ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS follow_id,
-  u1.user_id AS follower_id,
-  u2.user_id AS followee_id,
-  DATE_ADD('2000-01-01', INTERVAL FLOOR(RAND() * 7305) DAY) AS follow_date
-FROM Users u1, Users u2
-WHERE u1.user_id <> u2.user_id AND RAND() < 0.2;
+CALL add_random_followers_to_user();
+select COUNT(*) from Follows where follower_id=520;
 
-INSERT INTO Products (product_id, product_name)
-SELECT n, CONCAT('Product ', n)
+INSERT INTO Products (product_name)
+SELECT CONCAT('Product', n)
 FROM (SELECT ROW_NUMBER() OVER () AS n FROM information_schema.columns) AS nums
 WHERE n <= 10000;
 
-INSERT INTO Purchases (purchase_id, user_id, product_id, purchase_date)
-SELECT ROW_NUMBER() OVER () AS purchase_id,
-  u.user_id, p.product_id, DATE_ADD(CURDATE(), INTERVAL -FLOOR(RAND() * 3650) DAY)
-FROM Users u, Products p
-WHERE RAND() < 0.02;
 
+CALL add_random_product_to_user();
+select COUNT(*) from Purchases where user_id=520;
 
 ------------------INDEX-------------------
 
