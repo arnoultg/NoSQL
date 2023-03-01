@@ -11,9 +11,7 @@ Tout ces test sont dans le but de savoir quel est le modèle de base de données
 
 Cette web application permet de tester des requêtes sur différentes bases de données à travers une interface utilisateur simple et intuitive, elle donne le temps d'exécution de chaque requete. Elle est codée en HTML, CSS et JavaScript, ce qui la rend facilement accessible et modifiable. L'application est conçue pour fournir des résultats précis et clairs pour chaque requête exécutée, en offrant également une option pour remplir facilement les bases avec un interface intuitive. Grâce à cette application, les utilisateurs peuvent tester rapidement et efficacement leurs requêtes sur différentes bases de données, ce qui permet de faire un comparatif rapide entre les 2 technologies de bases de données.
 
-### Resultat des tests
 
-Ce petit tableau résume le temps d'éxecution de chacune des requetes pour chacune des technos mis sous haute volumétrie.
 
 ### Configuration de la base
 
@@ -25,6 +23,9 @@ Cela permet d'augmenter la charge maximale et permettra d'injecter plus de donn�
 
 ![image](https://user-images.githubusercontent.com/63504817/221928222-cb8c9d3e-01ec-4441-97ce-41128769e809.png)
 
+### Resultat des tests
+
+Ce petit tableau résume le temps d'éxecution de chacune des requetes pour chacune des technos mis sous haute volumétrie.
 
 ### Creation des bases :
 | Base de données | Users | Products | Purchases  | Follows 
@@ -47,6 +48,24 @@ Cela permet d'augmenter la charge maximale et permettra d'injecter plus de donn�
 | MariaDB        | 14.23 sc     | 13.51 sc     | 11.3 sc     |
 
 ### Installation du projet
+
+#### Configuration
+
+MariaDB :
+` port: 3306,
+  user: "root", 
+  password: "root" `
+  
+NoSQL :
+` port :7687,
+  user : neo4j,
+  password : neo4j1234`
+  
+API Node JS URL de requete:
+  `/requeteNeo4j,
+  /ajoutNeo4j,
+  /ajoutSQL,
+  /requeteSQL`
 
 Faire un GitClone dans un répertoire et ensuite utilisé un
 
