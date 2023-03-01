@@ -11,16 +11,61 @@ Tout ces test sont dans le but de savoir quel est le modèle de base de données
 
 Cette web application permet de tester des requêtes sur différentes bases de données à travers une interface utilisateur simple et intuitive, elle donne le temps d'exécution de chaque requete. Elle est codée en HTML, CSS et JavaScript, ce qui la rend facilement accessible et modifiable. L'application est conçue pour fournir des résultats précis et clairs pour chaque requête exécutée, en offrant également une option pour remplir facilement les bases avec un interface intuitive. Grâce à cette application, les utilisateurs peuvent tester rapidement et efficacement leurs requêtes sur différentes bases de données, ce qui permet de faire un comparatif rapide entre les 2 technologies de bases de données.
 
+
+
+### Configuration de la base
+
+Modifier le fichier mycnf.conf
+'innodb_buffer_pool_size = 1G'
+
+Cela permet d'augmenter la charge maximale et permettra d'injecter plus de donnée sans etre limité par les tampons de sécurité de mariaDB
+### Schéma de la base
+
+![image](https://user-images.githubusercontent.com/63504817/221928222-cb8c9d3e-01ec-4441-97ce-41128769e809.png)
+
 ### Resultat des tests
 
 Ce petit tableau résume le temps d'éxecution de chacune des requetes pour chacune des technos mis sous haute volumétrie.
 
+### Creation des bases :
+| Base de données | Users | Products | Purchases  | Follows 
+|----------------|-----------|-----------|-----------|-----------|
+| MariaDB    | 0.014 sc     | 0.010 sc     | 0.016 sc     | 0.013 sc     |
+| NoSQL      | 0.012 sc     | 0.008 sc     | 0.012 sc     | 0.047 sc     |
+
+
+### Remplissage des tables/noeuds :
+| Base de données | Users     | Products  | Purchases | Follows 
+|-----------------|-----------|-----------|-----------|-------------|
+| MariaDB         | 20 min    | 4sc       | 4.195 sc  | NA (trop long ) |
+| NoSQL           | 14.23 sc  | 13.51 sc  | NA sc   | NA sc     |
+
+
+### Temps des requetes :
 | Base de données | Requete 1 | Requete 2 | Requete 3 |
 |----------------|-----------|-----------|-----------|
 | NoSQL          | 13.02 sc     | 12.74 sc     | 16.2 sc     |
 | MariaDB        | 14.23 sc     | 13.51 sc     | 11.3 sc     |
 
 ### Installation du projet
+
+#### Configuration
+
+MariaDB :
+` port: 3306,
+  user: "root", 
+  password: "root" `
+  
+NoSQL :
+` port :7687,
+  user : neo4j,
+  password : neo4j1234`
+  
+API Node JS URL de requete:
+  `/requeteNeo4j,
+  /ajoutNeo4j,
+  /ajoutSQL,
+  /requeteSQL`
 
 Faire un GitClone dans un répertoire et ensuite utilisé un
 
@@ -33,7 +78,7 @@ Pour lancer l'application :
 `npm start`
 
 
-##IMPORTANT
+## IMPORTANT
 Nous nous sommes contenté du miminum en expérience utilisateur et nous vous recommandons d'ouvrir la console JS de votre navigateur afin d'avoir les messages de validations de vos actions ( ajout d'éléments dans les bases, requete de données, etc...)
 
 ### Conclusion :
@@ -45,3 +90,7 @@ La base de données NoSQL que nous avons créée est orientée graphe et est don
 L' autre solution se base de données relationnelle que nous avons créée, elle est optimisée pour les requêtes basées sur des tables. Elle est plus efficace pour les jointures sur plusieurs tables, comme la requête de niveau 3 que nous avons écrite, elle implique trois tables différentes. Cependant, elle peut être moins efficace pour les requêtes qui nécessitent de suivre des relations entre les données, comme les requêtes de niveau 1 et 2 que nous avons faites.
 
 En fonction de notre cas d'utilisation, nous pouvons choisir la base de données qui  nous convient le mieux. Si on travaille principalement avec des données relationnelles et que nous avons besoin d'effectuer des jointures complexes sur plusieurs tables, la base de données relationnelle est la meilleure option. Si vous travaillez principalement avec des données orientées graphe et que nous avons besoin d'effectuer des requêtes basées sur les relations, la base de données NoSQL semble être la meilleure option.
+
+
+
+Projet mené par Grégoire Arnoult et Jules Fabre.
