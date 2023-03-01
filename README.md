@@ -16,7 +16,7 @@ Cette web application permet de tester des requêtes sur différentes bases de d
 ### Configuration de la base
 
 Modifier le fichier mycnf.conf
-'innodb_buffer_pool_size = 1G'
+`innodb_buffer_pool_size = 1G`
 
 Cela permet d'augmenter la charge maximale et permettra d'injecter plus de données sans être limité par les tampons de sécurité de MariaDB
 
