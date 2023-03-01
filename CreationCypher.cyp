@@ -13,7 +13,7 @@ MATCH (u:User)
 WHERE NOT (u)-[:FOLLOWS]->()
 WITH u, RAND() AS random_number
 ORDER BY random_number
-WITH u, toInteger(RAND() * 20) AS num_followers
+WITH u, toInteger(RAND() * 21) AS num_followers
 WHERE num_followers > 0
 WITH u, num_followers
 MATCH (other_user:User)
@@ -24,24 +24,20 @@ UNWIND selected_users AS follower
 CREATE (u)-[:FOLLOWS]->(follower)
 
 
-//Ajouter des achats
 MATCH (u:User)
-WITH u, toInteger(rand()*5)+1 AS purchases
-UNWIND range(1, purchases) AS purchase
-WITH u, purchase
-LIMIT 1000 // Limiter le nombre d'utilisateurs traités pour éviter de surcharger la mémoire
-
-
+WHERE NOT (u)-[:PURCHASED]->()
+WITH u, toInteger(RAND() * 6) AS num_purchased
+WHERE num_purchased > 0
+WITH u, num_purchased
 MATCH (p:Product)
-WITH u, p, rand() AS r
-WHERE r < 0.1 // Modifier cette valeur pour contrôler la densité des relations
-WITH u, p
+WITH u,p,num_purchased, RAND() AS random_number
+ORDER BY random_number
+WITH u, num_purchased, collect(p) AS products_purchased
+WITH u, num_purchased, products_purchased[0..num_purchased-1] AS selected_product
+UNWIND selected_product AS product
+CREATE (u)-[:PURCHASED]->(product)
 
 
-MATCH (u)
-WITH u, collect(p) AS products
-UNWIND products AS p
-CREATE (u)-[:PURCHASED]->(p);
 
 //Requêtes dans la base :
 

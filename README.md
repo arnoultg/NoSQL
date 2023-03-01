@@ -2,14 +2,21 @@
 
 ## Sommaire
 
- - [Introduction](#Introduction)
- - [Introduction](#Introduction)
- - [Introduction](#Introduction)
- - [Introduction](#Introduction)
- - [Introduction](#Introduction)
+ - [Introduction]
+ - [Application Web]
+ - [Configuration de la base]
+ - [Schema de la base ]
+ - [Nos differentes requetes ]
+ - [Resultat des tests]
+    - [Creation des bases ]
+    - [Resultat des tests]
+    - [Resultat des tests]
+ - [Installation de l'application]
+ - [Conclusion]
  
  
-### Introduction
+ 
+## Introduction
 
 Le projet vise à simuler une application de réseau social permettant aux utilisateurs de suivre d'autres utilisateurs et d'acheter des produits en ligne. La base de données est conçue pour gérer un million d'utilisateurs, 10 000 références de produits et les relations entre eux. Le projet utilise deux technologies dans un but de comparaison de base de données différentes: une base de données NoSQL (Neo4J) et une base de données relationnelle (MariaDB). 
 
@@ -17,13 +24,13 @@ Les utilisateurs peuvent suivre d'autres utilisateurs de manière orientée, et 
 
 Tous ces test ont pour but de savoir quel est le modèle de base de données le plus efficace et dans quelle disposition ?
 
-### WEB
+## Application WEB
 
 Cette web application permet de tester des requêtes sur différentes bases de données à travers une interface utilisateur simple et intuitive, elle donne le temps d'exécution de chaque requête. Elle est codée en HTML, CSS et JavaScript, ce qui la rend facilement accessible et modifiable. L'application est conçue pour fournir des résultats précis et clairs pour chaque requête exécutée, en offrant également une option pour remplir facilement les bases avec une interface intuitive. Grâce à cette application, les utilisateurs peuvent tester rapidement et efficacement leurs requêtes sur différentes bases de données, ce qui permet de faire un comparatif rapide entre les 2 technologies de bases de données.
 
 
 
-### Configuration de la base
+## Configuration de la base
 
 Modifier le fichier mycnf.conf
 `innodb_buffer_pool_size = 1G`
@@ -34,7 +41,179 @@ Cela permet d'augmenter la charge maximale et permettra d'injecter plus de donn�
 
 ![image](https://user-images.githubusercontent.com/63504817/221928222-cb8c9d3e-01ec-4441-97ce-41128769e809.png)
 
-### Résultats des tests
+## Nos differentes requetes
+
+Les fichiers RequetesSQL et CreationCypher.cyp regroupe nos differentes commandes et requetes effectué pour la gestion des base de données. Cependant nous allons expliqué dans ce paragraphe le fonctionnement des differentes requetes.
+
+### Les requetes d'ajout de relation
+#### SQL
+
+CREATE OR REPLACE PROCEDURE add_random_followers_to_user() 
+BEGIN
+    DECLARE max_users INT;
+    DECLARE num_followers INT;
+    DECLARE user_id INT DEFAULT 1;
+    DECLARE i INT DEFAULT 1;
+    DECLARE rand_num INT;
+    
+    SELECT COUNT(*) INTO max_users FROM Users;
+
+    WHILE user_id <= max_users DO
+      SELECT COUNT(*) INTO num_followers FROM Follows WHERE follower_id = user_id;
+      IF num_followers = 0 THEN
+        SET i = 0;
+        SET num_followers = FLOOR(RAND() * 20);
+        WHILE i <= num_followers DO
+            SET rand_num = FLOOR(RAND() * max_users);
+            INSERT INTO Follows (follower_id, followee_id, follow_date)
+            VALUES (user_id, rand_num+1, NOW());
+            SET i = i + 1;
+        END WHILE;
+      END IF;
+      
+      SET user_id = user_id + 1;
+    END WHILE;
+END;
+
+Dans cette procedure nous parcourons tous les utilisateurs n'ayant pas de follower afin de leur ajouter un nombre entre 1 et 20. Ce nombre est choisi aleatoirement avec la fonction FLOOR(RAND() * 20). Ensuite nous effectuons une boucle jusqu'a atteindre le nombre de followers données et choisant de maniere aleatoire un user_id a follow. 
+
+CREATE OR REPLACE PROCEDURE add_random_product_to_user() 
+BEGIN
+    DECLARE max_users INT;
+    DECLARE max_product INT;
+    DECLARE num_product INT;
+    DECLARE user_id INT DEFAULT 1;
+    DECLARE i INT DEFAULT 1;
+    DECLARE rand_num INT;
+    
+    SELECT COUNT(*) INTO max_users FROM Users;
+    SELECT COUNT(*) INTO max_product FROM Products;
+
+    WHILE user_id <= max_users DO
+      SELECT COUNT(*) INTO num_product FROM Purchases p WHERE p.user_id = user_id;
+      IF num_product = 0 THEN
+        SET i = 0;
+        SET num_product = FLOOR(RAND() * 5);
+        WHILE i <= num_product DO
+            SET rand_num = FLOOR(RAND() * max_product);
+            INSERT INTO Purchases (user_id, product_id, purchase_date)
+            VALUES (user_id, rand_num+1, NOW());
+            SET i = i + 1;
+        END WHILE;
+      END IF;
+      
+      SET user_id = user_id + 1;
+    END WHILE;
+END;
+
+La fonction d'ajout de relation d'achat fonctionne sensiblement de la meme maniere que la précédante.
+
+#### NoSQL
+
+MATCH (u:User)
+WHERE NOT (u)-[:FOLLOWS]->()
+WITH u, RAND() AS random_number
+ORDER BY random_number
+WITH u, toInteger(RAND() * 21) AS num_followers
+WHERE num_followers > 0
+WITH u, num_followers
+MATCH (other_user:User)
+WHERE other_user <> u
+WITH u, num_followers, collect(other_user) AS other_users
+WITH u, num_followers, other_users[0..num_followers-1] AS selected_users
+UNWIND selected_users AS follower
+CREATE (u)-[:FOLLOWS]->(follower)
+
+Cette requete fonctionne de maniere differente. Elle parcours toute les users grace au premier MATCH (u:User), elle selectionne un nombre entre 0 et 20 grace à la fonction RAND(). Puis selectionne crée une liste d'autre user tant que la liste n'a pas atteint la taille de nombre de follow. Une fois la liste rempli elle crée de maniere récurisive grace a UNWIND les liens entre le premier User et les followers. 
+
+MATCH (u:User)
+WHERE NOT (u)-[:PURCHASED]->()
+WITH u, toInteger(RAND() * 6) AS num_purchased
+WHERE num_purchased > 0
+WITH u, num_purchased
+MATCH (p:Product)
+WITH u,p,num_purchased, RAND() AS random_number
+ORDER BY random_number
+WITH u, num_purchased, collect(p) AS products_purchased
+WITH u, num_purchased, products_purchased[0..num_purchased-1] AS selected_product
+UNWIND selected_product AS product
+CREATE (u)-[:PURCHASED]->(product)
+
+La requete pour les achats fonctionne de la meme facon, le seul point changeant est que nous mettons un ordre aleatoire sur les produits afin d'eviter d'acheter les premiers produits à chaque fois
+
+### Requete 1
+
+#### SQl
+
+INSERT INTO Follows (follower_id, followee_id, follow_date)
+SELECT u1.user_id, u2.user_id, CURDATE()
+FROM Users u1
+JOIN Users u2 ON u1.user_id <> u2.user_id
+WHERE u1.user_id BETWEEN 1 AND (SELECT MAX(u1.user_id) FROM Users)
+AND u2.user_id BETWEEN 1 AND (SELECT MAX(u2.user_id) FROM Users)
+AND RAND() < 0.1
+AND (SELECT COUNT(*) FROM Follows WHERE follower_id = u1.user_id) < 20
+AND NOT EXISTS (SELECT * FROM Follows f WHERE f.follower_id = u1.user_id AND f.followee_id = u2.user_id);
+
+#### NoSql
+
+MATCH (u:User {user_id:1})-[:FOLLOWS*0..1]->(f:User)-[:PURCHASED]->(p:Product)
+RETURN p.product_name, COUNT(DISTINCT f) AS nombre_de_followers, COUNT(*) AS nombre_de_commandes
+ORDER BY nombre_de_followers DESC
+
+### Requete 2
+
+#### SQl
+
+WITH RECURSIVE followers(follower_id, followee_id, level) AS (
+SELECT follower_id, followee_id, 1 FROM Follows WHERE follower_id = $Follower_ID
+   UNION
+   SELECT f.follower_id, f.followee_id, level + 1
+   FROM Follows f
+   JOIN followers ON f.follower_id = followers.followee_id
+   WHERE level < $LEVEL
+ )
+ SELECT f.follower_id , p.product_id, p.product_name, COUNT(*) as num_purchases
+ FROM followers f
+ JOIN Purchases pur ON f.followee_id = pur.user_id
+ JOIN Products p ON pur.product_id = p.product_id
+ WHERE p.product_name= $Product_Name
+ ORDER BY f.follower_id;
+
+#### NoSql
+
+MATCH (u:User {user_id:$USER})-[:FOLLOWS*0..$LEVEL]->(f:User)-[:PURCHASED]->(p:Product {product_id: $PRODUCT})
+RETURN COUNT(DISTINCT f) AS nombre_de_followers, COUNT(*) AS nombre_de_commandes
+
+### Requete 3
+
+#### SQl
+
+SELECT COUNT(DISTINCT f.followee_id) AS num_followees
+FROM Users u
+INNER JOIN (
+    WITH RECURSIVE followers(follower_id, followee_id, level) AS (
+        SELECT follower_id, followee_id, 1 FROM Follows WHERE followee_id IN (
+            SELECT user_id FROM Purchases WHERE product_id = $PRODUCT_ID
+        )
+        UNION
+        SELECT f.follower_id, f.followee_id, level + 1
+        FROM Follows f
+        JOIN followers ON f.follower_id = followers.followee_id
+        WHERE level < $LEVEL
+    )
+    SELECT followee_id FROM followers
+) AS f ON u.user_id = f.followee_id;
+
+#### NoSql
+
+MATCH (p:Product {product_id: $PRODUCT})<-[:PURCHASED]-(u:User)
+MATCH (u)-[:FOLLOWS*$LEVEL]->(f:User)
+MATCH (f)-[:PURCHASED]->(p)
+RETURN  COUNT(DISTINCT f) AS nombre_de_followers, COUNT(*) AS nombre_de_commandes
+
+
+## Résultats des tests
 
 Ces petits tableaux résument le temps d'éxecution de chacune des requêtes pour chacune des technologies mises sous haute volumétrie.
 
@@ -58,7 +237,7 @@ Ces petits tableaux résument le temps d'éxecution de chacune des requêtes pou
 | NoSQL          | 13.02 sc     | 12.74 sc     | 16.2 sc     |
 | MariaDB        | 14.23 sc     | 13.51 sc     | 11.3 sc     |
 
-#### Configuration
+### Configuration
 
 MariaDB :
 ` port: 3306,
@@ -76,7 +255,7 @@ API Node JS, URL de requête:
   /ajoutSQL,
   /requeteSQL`
 
-### Installation du projet
+## Installation du projet
 
 Faire un GitClone dans un répertoire et ensuite utiliser un
 
@@ -89,10 +268,10 @@ Pour lancer l'application :
 `npm start`
 
 
-## IMPORTANT
+# IMPORTANT
 Nous nous sommes contentés du miminum en expérience utilisateur et nous vous recommandons d'ouvrir la console JS de votre navigateur afin d'avoir les messages de validation de vos actions ( ajout d'éléments dans les bases, requête de données, etc...)
 
-### Conclusion :
+## Conclusion :
 
 Les deux bases de données que nous avons créé sont différentes et ont chacune leurs avantages et leurs inconvénients en fonction des cas d'utilisation:
 
