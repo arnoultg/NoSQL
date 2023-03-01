@@ -100,7 +100,7 @@ FROM (SELECT ROW_NUMBER() OVER () AS n FROM information_schema.columns) AS nums
 WHERE n <= 10000;
 
 CALL add_random_followers_to_user();
-select COUNT(*) from Follows where follower_id=520;
+-- select COUNT(*) from Follows where follower_id=520;
 
 INSERT INTO Products (product_name)
 SELECT CONCAT('Product', n)
@@ -109,7 +109,7 @@ WHERE n <= 10000;
 
 
 CALL add_random_product_to_user();
-select COUNT(*) from Purchases where user_id=520;
+-- select COUNT(*) from Purchases where user_id=520;
 
 ------------------INDEX-------------------
 

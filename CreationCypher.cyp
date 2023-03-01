@@ -1,22 +1,47 @@
 // Créer 1 million d'utilisateurs
-UNWIND range(1, 10000000) AS user_id
+UNWIND range(1, 10) AS user_id
 CREATE (:User {user_id: user_id});
 
-// Créer 100 000 produits
-UNWIND range(1, 100) AS product_id
+// Créer 10 000 produits
+UNWIND range(1, 10) AS product_id
 CREATE (:Product {product_id: product_id});
 
-// Ajouter des relations "suit" aléatoires
-MATCH (u1:User), (u2:User)
-WHERE u1 <> u2 AND rand() < 0.5
-CREATE (u1)-[:FOLLOWS]->(u2)
 
-//Créer des produits avec des relations d'achat aléatoires :
 
-// Ajouter des relations d'achat aléatoires
-MATCH (u:User), (p:Product)
-WHERE rand() < 0.5
-CREATE (u)-[:PURCHASED]->(p)
+//Ajouter des liens 
+MATCH (u:User)
+WHERE NOT (u)-[:FOLLOWS]->()
+WITH u, RAND() AS random_number
+ORDER BY random_number
+WITH u, toInteger(RAND() * 20) AS num_followers
+WHERE num_followers > 0
+WITH u, num_followers
+MATCH (other_user:User)
+WHERE other_user <> u
+WITH u, num_followers, collect(other_user) AS other_users
+WITH u, num_followers, other_users[0..num_followers-1] AS selected_users
+UNWIND selected_users AS follower
+CREATE (u)-[:FOLLOWS]->(follower)
+
+
+//Ajouter des achats
+MATCH (u:User)
+WITH u, toInteger(rand()*5)+1 AS purchases
+UNWIND range(1, purchases) AS purchase
+WITH u, purchase
+LIMIT 1000 // Limiter le nombre d'utilisateurs traités pour éviter de surcharger la mémoire
+
+
+MATCH (p:Product)
+WITH u, p, rand() AS r
+WHERE r < 0.1 // Modifier cette valeur pour contrôler la densité des relations
+WITH u, p
+
+
+MATCH (u)
+WITH u, collect(p) AS products
+UNWIND products AS p
+CREATE (u)-[:PURCHASED]->(p);
 
 //Requêtes dans la base :
 

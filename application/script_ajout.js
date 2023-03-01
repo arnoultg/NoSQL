@@ -78,15 +78,25 @@ $(document).ready(() => {
 
 
     $('#add-link').click(() => {
-        let nb = document.getElementById("nb-link").value;
         if (selecteur.value === "Neo4j") {
 
             $.ajax({
                 type: "POST",
                 url: "http://localhost:8080/ajoutNeo4j",
-                data: { cypherQuery: `MATCH (u1:User), (u2:User)
-                    WHERE u1 <> u2 AND rand() < `+ nb +`
-                    CREATE (u1)-[:FOLLOWS]->(u2);` },
+                data: { cypherQuery: `MATCH (u:User)
+                WHERE NOT (u)-[:FOLLOWS]->()
+                WITH u, RAND() AS random_number
+                ORDER BY random_number
+                WITH u, toInteger(RAND() * 20) AS num_followers
+                WHERE num_followers > 0
+                WITH u, num_followers
+                MATCH (other_user:User)
+                WHERE other_user <> u
+                WITH u, num_followers, collect(other_user) AS other_users
+                WITH u, num_followers, other_users[0..num_followers-1] AS selected_users
+                UNWIND selected_users AS follower
+                CREATE (u)-[:FOLLOWS]->(follower)
+                ;` },
                 success: function(response) {
                     console.log(response)   
                 },
@@ -100,12 +110,7 @@ $(document).ready(() => {
             $.ajax({
                 type: "POST",
                 url: "http://localhost:8080/ajoutSQL",
-                data: { sql: `INSERT INTO Follows (follower_id, followee_id, follow_date)
-                SELECT u1.user_id AS follower_id,
-                       u2.user_id AS followee_id,
-                       DATE_ADD('2000-01-01', INTERVAL FLOOR(RAND() * 7305) DAY) AS follow_date
-                FROM Users u1, Users u2
-                WHERE u1.user_id <> u2.user_id AND RAND() < `+ nb +`;` },
+                data: { sql: `CALL add_random_followers_to_user();` },
                 success: function(response) {
                 console.log(response)
                 },
@@ -119,15 +124,27 @@ $(document).ready(() => {
     });
 
     $('#add-achat').click(() => {
-        let nb = document.getElementById("nb-achat").value;
         if (selecteur.value === "Neo4j") {
             $.ajax({
                 type: "POST",
                 url: "http://localhost:8080/ajoutNeo4j",
-                data: { cypherQuery: `MATCH (u:User), (p:Product)
-                WHERE rand() < `+ nb +`
-                CREATE (u)-[:PURCHASED]->(p)
-                ;` },
+                data: { cypherQuery: `MATCH (u:User)
+                WITH u, toInteger(rand()*5)+1 AS purchases
+                UNWIND range(1, purchases) AS purchase
+                WITH u, purchase
+                LIMIT 1000 // Limiter le nombre d'utilisateurs traités pour éviter de surcharger la mémoire
+                
+                
+                MATCH (p:Product)
+                WITH u, p, rand() AS r
+                WHERE r < 0.1 // Modifier cette valeur pour contrôler la densité des relations
+                WITH u, p
+                
+                
+                MATCH (u)
+                WITH u, collect(p) AS products
+                UNWIND products AS p
+                CREATE (u)-[:PURCHASED]->(p);` },
                 success: function(response) {
                     console.log(response)   
                 },
@@ -140,11 +157,7 @@ $(document).ready(() => {
             $.ajax({
                 type: "POST",
                 url: "http://localhost:8080/ajoutSQL",
-                data: { sql: `INSERT INTO Purchases (user_id, product_id, purchase_date)
-                SELECT u.user_id, p.product_id, DATE_ADD(CURDATE(), INTERVAL -FLOOR(RAND() * 3650) DAY)
-                FROM Users u, Products p
-                WHERE RAND() < `+ nb +`;
-                ` },
+                data: { sql: `CALL add_random_product_to_user();`},
                 success: function(response) {
                 console.log(response)
                 },
