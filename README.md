@@ -1,5 +1,15 @@
-# NoSQL
+# Base de données NoSQL
 
+## Sommaire
+
+ - [Introduction](#Introduction)
+ - [Introduction](#Introduction)
+ - [Introduction](#Introduction)
+ - [Introduction](#Introduction)
+ - [Introduction](#Introduction)
+ 
+ 
+### Introduction
 
 Le projet vise à simuler une application de réseau social permettant aux utilisateurs de suivre d'autres utilisateurs et d'acheter des produits en ligne. La base de données est conçue pour gérer un million d'utilisateurs, 10 000 références de produits et les relations entre eux. Le projet utilise deux technologies dans un but de comparaison de base de données différentes: une base de données NoSQL (Neo4J) et une base de données relationnelle (MariaDB). 
 
