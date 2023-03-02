@@ -125,15 +125,18 @@ CREATE INDEX idx_products_product_name ON Products (product_name);
 --$LEVEL
 --$Follower_ID
 
-INSERT INTO Follows (follower_id, followee_id, follow_date)
-SELECT u1.user_id, u2.user_id, CURDATE()
-FROM Users u1
-JOIN Users u2 ON u1.user_id <> u2.user_id
-WHERE u1.user_id BETWEEN 1 AND (SELECT MAX(u1.user_id) FROM Users)
-AND u2.user_id BETWEEN 1 AND (SELECT MAX(u2.user_id) FROM Users)
-AND RAND() < 0.1
-AND (SELECT COUNT(*) FROM Follows WHERE follower_id = u1.user_id) < 20
-AND NOT EXISTS (SELECT * FROM Follows f WHERE f.follower_id = u1.user_id AND f.followee_id = u2.user_id);
+WITH RECURSIVE followers(follower_id, followee_id, level) AS (
+SELECT follower_id, followee_id, 1 FROM Follows WHERE follower_id = $Follower_ID UNION
+SELECT f.follower_id, f.followee_id, level + 1
+FROM Follows f
+JOIN followers ON f.follower_id = followers.followee_id
+WHERE level < $LEVEL)
+SELECT f.follower_id , p.product_id, p.product_name, COUNT(*) as num_purchases
+FROM followers f 
+JOIN Purchases pur ON f.followee_id = pur.user_id
+JOIN Products p ON pur.product_id = p.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY num_purchases DESC;
 
 
 -- On peut changer le LEVEL pour avoir une profondeur selon ce que l'on souhaite
