@@ -28,7 +28,11 @@ Tous ces test ont pour but de savoir quel est le modèle de base de données le 
 
 Cette web application permet de tester des requêtes sur différentes bases de données à travers une interface utilisateur simple et intuitive, elle donne le temps d'exécution de chaque requête. Elle est codée en HTML, CSS et JavaScript, ce qui la rend facilement accessible et modifiable. L'application est conçue pour fournir des résultats précis et clairs pour chaque requête exécutée, en offrant également une option pour remplir facilement les bases avec une interface intuitive. Grâce à cette application, les utilisateurs peuvent tester rapidement et efficacement leurs requêtes sur différentes bases de données, ce qui permet de faire un comparatif rapide entre les 2 technologies de bases de données.
 
+![Capture d’écran du 2023-03-02 10-13-27](https://user-images.githubusercontent.com/39692947/222985138-142db16b-520e-4632-9292-d38f2887addf.png)
 
+![Capture d’écran du 2023-03-02 10-12-37](https://user-images.githubusercontent.com/39692947/222985151-915c6a74-3697-4980-b8b5-cefbd5675b27.png)
+
+![Capture d’écran du 2023-03-02 10-03-47](https://user-images.githubusercontent.com/39692947/222985164-24a43cdd-446e-4a76-a749-e1fea448abf5.png)
 
 ## Configuration de la base
 
